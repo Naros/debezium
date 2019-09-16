@@ -293,7 +293,14 @@ public final class TestHelper {
                                   statement.setString(3, TestHelper.decoderPlugin().getPostgresPluginName());
                                   statement.setBoolean(4, active);
                               },
-                              rs -> rs.next()
+                              rs -> {
+                                  if (active) {
+                                      return rs.next();
+                                  }
+                                  else {
+                                      return !rs.next();
+                                  }
+                              }
                       ));
             }
             catch (ConditionTimeoutException e) {
