@@ -168,6 +168,10 @@ public class PostgresConnection extends JdbcConnection {
                 rs -> {
                     if (rs.next()) {
                         boolean active = rs.getBoolean("active");
+                        Long activePid = null;
+                        if (active) {
+                            activePid = rs.getLong("active_pid");
+                        }
                         Long confirmedFlushedLsn = parseConfirmedFlushLsn(slotName, pluginName, database, rs);
                         if (confirmedFlushedLsn == null) {
                             return null;
@@ -177,7 +181,7 @@ public class PostgresConnection extends JdbcConnection {
                             return null;
                         }
                         Long xmin = rs.getLong("catalog_xmin");
-                        return new ServerInfo.ReplicationSlot(active, confirmedFlushedLsn, restartLsn, xmin);
+                        return new ServerInfo.ReplicationSlot(active, confirmedFlushedLsn, restartLsn, xmin, activePid);
                     }
                     else {
                         LOGGER.debug("No replication slot '{}' is present for plugin '{}' and database '{}'", slotName,

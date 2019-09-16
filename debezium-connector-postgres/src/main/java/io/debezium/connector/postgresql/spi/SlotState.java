@@ -16,12 +16,14 @@ public class SlotState {
     private final Long restartLsn;
     private final Long catalogXmin;
     private final boolean active;
+    private final Long activePid;
 
-    public SlotState(Long lastFlushLsn, Long restartLsn, Long catXmin, boolean active) {
+    public SlotState(Long lastFlushLsn, Long restartLsn, Long catXmin, boolean active, Long activePid) {
         this.active = active;
         this.latestFlushedLsn = lastFlushLsn;
         this.restartLsn = restartLsn;
         this.catalogXmin = catXmin;
+        this.activePid = activePid;
     }
 
     /**
@@ -50,5 +52,9 @@ public class SlotState {
      */
     public boolean slotIsActive() {
         return active;
+    }
+
+    public Long getActivePid() {
+        return activePid;
     }
 }
