@@ -16,7 +16,6 @@ import java.util.concurrent.TimeUnit;
 import org.apache.kafka.connect.source.SourceRecord;
 import org.fest.assertions.Assertions;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import io.debezium.config.Configuration;
@@ -27,7 +26,6 @@ import io.debezium.connector.postgresql.PostgresConnectorConfig.SnapshotMode;
  *
  * @author Jiri Pechanec (jpechane@redhat.com)
  */
-@Ignore
 public class SnapshotWithOverridesProducerIT extends AbstractRecordsProducerTest {
 
     private static final String STATEMENTS =
