@@ -7,6 +7,7 @@
 package io.debezium.connector.postgresql;
 
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.fail;
 
 import java.net.URL;
 import java.nio.charset.Charset;
@@ -19,6 +20,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.awaitility.Awaitility;
+import org.awaitility.core.ConditionTimeoutException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -272,17 +274,31 @@ public final class TestHelper {
         }
     }
 
+    protected static void waitForDefaultReplicationSlotToBeInactive() {
+        waitForDefaultReplicationSlotStatus(false);
+    }
+
     protected static void waitForDefaultReplicationSlotBeActive() {
+        waitForDefaultReplicationSlotStatus(true);
+    }
+
+    private static void waitForDefaultReplicationSlotStatus(boolean active) {
         try (PostgresConnection connection = create()) {
-            Awaitility.await().atMost(org.awaitility.Duration.FIVE_SECONDS).until(() ->
-                connection.prepareQueryAndMap(
-                    "select * from pg_replication_slots where slot_name = ? and database = ? and plugin = ? and active = true", statement -> {
-                        statement.setString(1, ReplicationConnection.Builder.DEFAULT_SLOT_NAME);
-                        statement.setString(2, "postgres");
-                        statement.setString(3, TestHelper.decoderPlugin().getPostgresPluginName());
-                    },
-                    rs -> rs.next()
-               ));
+            try {
+                Awaitility.await().atMost(org.awaitility.Duration.FIVE_SECONDS).until(() ->
+                      connection.prepareQueryAndMap(
+                              "select * from pg_replication_slots where slot_name = ? and database = ? and plugin = ? and active = ?", statement -> {
+                                  statement.setString(1, ReplicationConnection.Builder.DEFAULT_SLOT_NAME);
+                                  statement.setString(2, "postgres");
+                                  statement.setString(3, TestHelper.decoderPlugin().getPostgresPluginName());
+                                  statement.setBoolean(4, active);
+                              },
+                              rs -> rs.next()
+                      ));
+            }
+            catch (ConditionTimeoutException e) {
+                fail("Expected default replication slot status to be " + (active ? "active" : "inactive") + " after 5 seconds.");
+            }
         }
     }
 }

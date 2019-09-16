@@ -106,6 +106,7 @@ public class PostgresConnectorIT extends AbstractConnectorTest {
     @After
     public void after() {
         stopConnector();
+        TestHelper.waitForDefaultReplicationSlotToBeInactive();
         TestHelper.dropDefaultReplicationSlot();
         TestHelper.dropPublication();
     }
