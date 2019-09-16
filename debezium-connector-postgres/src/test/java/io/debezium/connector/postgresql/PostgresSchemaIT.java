@@ -22,6 +22,7 @@ import org.apache.kafka.connect.data.Field;
 import org.apache.kafka.connect.data.Schema;
 import org.apache.kafka.connect.data.SchemaBuilder;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TestRule;
@@ -56,6 +57,7 @@ import io.debezium.util.Strings;
  *
  * @author Horia Chiorean (hchiorea@redhat.com)
  */
+@Ignore
 public class PostgresSchemaIT {
 
     @Rule

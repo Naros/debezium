@@ -10,6 +10,7 @@ import static org.fest.assertions.Assertions.assertThat;
 import org.apache.kafka.connect.data.Schema;
 import org.apache.kafka.connect.data.SchemaBuilder;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import io.debezium.config.Configuration;
@@ -23,6 +24,7 @@ import io.debezium.time.Conversions;
  * @author Jiri Pechanec
  *
  */
+@Ignore
 public class SourceInfoTest {
 
     private SourceInfo source;

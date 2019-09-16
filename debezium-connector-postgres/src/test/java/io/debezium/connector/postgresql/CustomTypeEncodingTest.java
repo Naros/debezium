@@ -11,11 +11,13 @@ import static org.junit.Assert.assertEquals;
 import java.math.BigDecimal;
 
 import org.apache.kafka.connect.data.Struct;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import io.debezium.data.SpecialValueDecimal;
 import io.debezium.data.VariableScaleDecimal;
 
+@Ignore
 public class CustomTypeEncodingTest {
 
     @Test
