@@ -8,13 +8,11 @@ package io.debezium.connector.postgresql;
 
 import io.debezium.doc.FixFor;
 
-import org.junit.Ignore;
 import org.junit.Test;
 
 /**
  * Integration test for {@link PostgresConnectorTask} class.
  */
-@Ignore
 public class PostgresConnectorTaskIT {
 
     @Test

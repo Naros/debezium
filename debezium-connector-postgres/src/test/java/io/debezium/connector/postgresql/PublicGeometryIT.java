@@ -16,7 +16,6 @@ import java.util.concurrent.TimeUnit;
 
 import org.apache.kafka.connect.source.SourceRecord;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TestRule;
@@ -37,7 +36,6 @@ import io.debezium.relational.TableId;
  *
  * @author Jiri Pechanec
  */
-@Ignore
 public class PublicGeometryIT extends AbstractRecordsProducerTest {
 
     private TestConsumer consumer;
