@@ -50,7 +50,6 @@ import io.debezium.util.Testing;
  *
  * @author Horia Chiorean (hchiorea@redhat.com)
  */
-@Ignore
 public class RecordsSnapshotProducerIT extends AbstractRecordsProducerTest {
 
     @Rule
