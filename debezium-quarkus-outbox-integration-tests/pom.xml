@@ -60,10 +60,18 @@
             <version>${quarkus.version}</version>
             <scope>test</scope>
         </dependency>
+
         <dependency>
             <groupId>org.testcontainers</groupId>
             <artifactId>testcontainers</artifactId>
             <version>1.12.4</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>io.debezium</groupId>
+            <artifactId>debezium-quarkus-outbox-deployment</artifactId>
+            <version>${parent.version}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
