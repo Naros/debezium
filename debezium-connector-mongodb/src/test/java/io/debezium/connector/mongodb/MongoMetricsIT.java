@@ -9,8 +9,6 @@ import static org.fest.assertions.Assertions.assertThat;
 import static org.junit.Assert.fail;
 
 import java.lang.management.ManagementFactory;
-import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 import javax.management.InstanceNotFoundException;
 import javax.management.MBeanAttributeInfo;
@@ -127,22 +125,13 @@ public class MongoMetricsIT extends AbstractMongoConnectorIT {
         // wait for streaming to have started
         waitForStreamingRunning("mongodb", "mongo1");
         storeDocuments("dbit", "restaurants", "restaurants1.json");
-        waitForAvailableRecords(5, TimeUnit.SECONDS);
 
         SourceRecords records = consumeRecordsByTopic(6);
         assertThat(records.topics().size()).isEqualTo(1);
         assertThat(records.recordsForTopic("mongo1.dbit.restaurants").size()).isEqualTo(6);
 
-        records.recordsForTopic("mongo1.dbit.restaurants").forEach(r -> {
-            System.out.println(r);
-            System.out.println("");
-        });
-
         final MBeanServer mBeanServer = ManagementFactory.getPlatformMBeanServer();
         final ObjectName objectName = getStreamingMetricsObjectName("mongodb", "mongo1");
-
-        List<Integer> version = (List<Integer>) TestHelper.databaseInformation(primary(), "mongo1").get("versionArray");
-        System.out.println(version);
 
         assertThat(mBeanServer.getAttribute(objectName, "SourceEventPosition")).isNotNull();
         assertThat(mBeanServer.getAttribute(objectName, "NumberOfCommittedTransactions")).isEqualTo(0L);
