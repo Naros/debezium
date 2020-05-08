@@ -1,0 +1,39 @@
+# A workflow for OpenJDK quality outreach testing
+name: Java Quality Outreach
+
+on:
+  push:
+    branches:
+      - ghactions-test
+  pull_request:
+  schedule:
+    # Schedules the workflow to run every Monday at midnight
+    - cron: '0 0 * * MON'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        java: [ '8', '14' ]
+    name: Java ${{ matrix.java }}
+    steps:
+      # By default checks out reference or SHA for the event; otherwise master.
+      - uses: actions/checkout@v2
+        with:
+          # By default submodules are not checked-out and in the event we add this in the future, this is prepared for it
+          submodules: recursive
+      # Sets up a cache for maven to avoid needing to redownload artifacts for each matrix execution or task
+      - uses: actions/cache@v1.1.2
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os}}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
+      # Setup the JDK to be used
+      - name: Setup java
+        uses: actions/setup-java@v1.3.0
+        with:
+          java-version:  ${{ matrix.java }}
+      - name: Build
+        run: mvn clean install -B -pl debezium-core -am -Passembly -Dformat.formatter.goal=validate -Dformat.imports.goal=check -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.tarnsfer.Slf4jMavenTransferListener=warn
