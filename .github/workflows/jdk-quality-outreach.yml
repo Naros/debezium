@@ -13,47 +13,232 @@ on:
     - cron: '0 0 * * MON'
 
 jobs:
-  build:
+  sqlserver:
     runs-on: ubuntu-latest
     strategy:
       matrix:
         java: [ '8', '14' ]
-    name: Java ${{ matrix.java }}
+    name: SQL Server - Java ${{ matrix.java }}
     steps:
-      # By default checks out reference or SHA for the event; otherwise master.
       - uses: actions/checkout@v2
         with:
-          # By default submodules are not checked-out and in the event we add this in the future, this is prepared for it
           submodules: recursive
-      # Sets up a cache for maven to avoid needing to redownload artifacts for each matrix execution or task
       - uses: actions/cache@v1.1.2
         with:
           path: ~/.m2/repository
-          key: ${{ runner.os}}-maven-${{ hashFiles('**/pom.xml') }}
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
           restore-keys: |
             ${{ runner.os }}-maven-
-      # Setup the JDK to be used
-      - name: Setup java
+      - name: Setup Java
         uses: actions/setup-java@v1.3.0
         with:
-          java-version:  ${{ matrix.java }}
-      - name: SQL Server
+          java-version: ${{ matrix.java }}
+      - name: Maven build
         run: mvn clean install -B -pl debezium-connector-sqlserver -am -Passembly -Dformat.formatter.goal=validate -Dformat.imports.goal=check -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn
-      - name: MySQL
+
+  mysql:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        java: [ '8', '14' ]
+    name: MySQL - Java ${{ matrix.java }}
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: recursive
+      - uses: actions/cache@v1.1.2
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
+      - name: Setup Java
+        uses: actions/setup-java@v1.3.0
+        with:
+          java-version: ${{ matrix.java }}
+      - name: Maven build    
         run: mvn clean install -B -pl debezium-connector-mysql -am -Passembly -Dformat.formatter.goal=validate -Dformat.imports.goal=check -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn
-      - name: PostgreSQL Decoderbufs
+
+  postgres-decoderbufs:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        java: [ '8', '14' ]
+    name: Postgres Decoderbufs - Java ${{ matrix.java }}
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: recursive
+      - uses: actions/cache@v1.1.2
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
+      - name: Setup Java
+        uses: actions/setup-java@v1.3.0
+        with:
+          java-version: ${{ matrix.java }}
+      - name: Maven build    
         run: mvn clean install -B -pl debezium-connector-postgres -am -Passembly -Dformat.formatter.goal=validate -Dformat.imports.goal=check -Dversion.postgres.server=9.6-devel -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn
-      - name: PostgreSQL Wal2json
+        
+  postgres-wal2json:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        java: [ '8', '14' ]
+    name: Postgres Wal2json - Java ${{ matrix.java }}
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: recursive
+      - uses: actions/cache@v1.1.2
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
+      - name: Setup Java
+        uses: actions/setup-java@v1.3.0
+        with:
+          java-version: ${{ matrix.java }}
+      - name: Maven build    
         run: mvn clean install -B -pl debezium-connector-postgres -am -Passembly,wal2json-decoder -Dformat.formatter.goal=validate -Dformat.imports.goal=check -Dversion.postgres.server=9.6-devel -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn        
-      - name: PostgreSQL Pgoutput
+        
+  postgres-pgoutput:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        java: [ '8', '14' ]
+    name: Postgres Pgoutput - Java ${{ matrix.java }}
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: recursive
+      - uses: actions/cache@v1.1.2
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
+      - name: Setup Java
+        uses: actions/setup-java@v1.3.0
+        with:
+          java-version: ${{ matrix.java }}
+      - name: Maven build                  
         run: mvn clean install -B -pl debezium-connector-postgres -am -Passembly,pgoutput-decoder,postgres-10 -Ddebezium.test.records.waittime=5 -Dformat.formatter.goal=validate -Dformat.imports.goal=check -Dversion.postgres.server=10-devel -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn                
-      - name: MongoDB 3.2
+        
+  mongodb-3.2:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        java: [ '8', '14' ]
+    name: MongoDB 3.2 - Java ${{ matrix.java }}
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: recursive
+      - uses: actions/cache@v1.1.2
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
+      - name: Setup Java
+        uses: actions/setup-java@v1.3.0
+        with:
+          java-version: ${{ matrix.java }}
+      - name: Maven build                        
         run: mvn clean install -B -pl debezium-connector-mongodb -am -Passembly -Dformat.formatter.goal=validate -Dformat.imports.goal=check -Dversion.mongo.server=3.2 -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn                        
-      - name: MongoDB 3.6
+        
+  mongodb-3.6:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        java: [ '8', '14' ]
+    name: MongoDB 3.6 - Java ${{ matrix.java }}
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: recursive
+      - uses: actions/cache@v1.1.2
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
+      - name: Setup Java
+        uses: actions/setup-java@v1.3.0
+        with:
+          java-version: ${{ matrix.java }}
+      - name: Maven build                                
         run: mvn clean install -B -pl debezium-connector-mongodb -am -Passembly -Dformat.formatter.goal=validate -Dformat.imports.goal=check -Dversion.mongo.server=3.6 -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn                                
-      - name: MongoDB 4.0
+        
+  mongodb-4.0:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        java: [ '8', '14' ]
+    name: MongoDB 4.0 - Java ${{ matrix.java }}
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: recursive
+      - uses: actions/cache@v1.1.2
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
+      - name: Setup Java
+        uses: actions/setup-java@v1.3.0
+        with:
+          java-version: ${{ matrix.java }}
+      - name: Maven build   
         run: mvn clean install -B -pl debezium-connector-mongodb -am -Passembly -Dformat.formatter.goal=validate -Dformat.imports.goal=check -Dversion.mongo.server=4.0 -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn                                        
-      - name: Quarkus Outbox Extension
+      
+  quarkus-outbox:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        java: [ '8', '14' ]
+    name: Quarkus Outbox Extension - Java ${{ matrix.java }}
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: recursive
+      - uses: actions/cache@v1.1.2
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
+      - name: Setup Java
+        uses: actions/setup-java@v1.3.0
+        with:
+          java-version: ${{ matrix.java }}
+      - name: Maven build         
         run: mvn clean install -B -pl debezium-quarkus-outbox -U -am -amd -Passembly -Dformat.formatter.goal=validate -Dformat.imports.goal=check -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn                                                
-      - name: Testing module
+  
+  testing:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        java: [ '8', '14' ]
+    name: Testing module - Java ${{ matrix.java }}
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: recursive
+      - uses: actions/cache@v1.1.2
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
+      - name: Setup Java
+        uses: actions/setup-java@v1.3.0
+        with:
+          java-version: ${{ matrix.java }}
+      - name: Maven build 
         run: mvn clean install -B -pl debezium-testing -am -amd -Passembly -Dformat.formatter.goal=validate -Dformat.imports.goal=check -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn                                                        
