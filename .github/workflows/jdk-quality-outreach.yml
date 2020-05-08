@@ -36,4 +36,4 @@ jobs:
         with:
           java-version:  ${{ matrix.java }}
       - name: Build
-        run: mvn clean install -B -pl debezium-core -am -Passembly -Dformat.formatter.goal=validate -Dformat.imports.goal=check -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.tarnsfer.Slf4jMavenTransferListener=warn
+        run: mvn clean install -B -pl debezium-connector-mongodb -am -Passembly -Dformat.formatter.goal=validate -Dformat.imports.goal=check -Dversion.mongo.server=3.2 -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn
