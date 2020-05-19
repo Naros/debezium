@@ -22,6 +22,6 @@ jobs:
         uses: actions/setup-java@1.3.0
         with:
           java-version: ${{ matrix.java }}
-      - name:
+      - name: Maven Build
         run: (@= job.maven @)
 #@ end
