@@ -23,5 +23,5 @@ jobs:
         with:
           java-version: ${{ matrix.java }}
       - name:
-          run: (@= job.maven @)
+        run: (@= job.maven @)
 #@ end
