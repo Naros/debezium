@@ -10,7 +10,7 @@ jobs:
       matrix:
         java:
         - "14"
-        - "15"
+        - 15.0.0-ea.23
     name: SQL Server - Java ${{ matrix.java }}
     steps:
     - uses: actions/checkout@v2
@@ -29,7 +29,7 @@ jobs:
       matrix:
         java:
         - "14"
-        - "15"
+        - 15.0.0-ea.23
     name: MySQL - Java ${{ matrix.java }}
     steps:
     - uses: actions/checkout@v2
@@ -48,7 +48,7 @@ jobs:
       matrix:
         java:
         - "14"
-        - "15"
+        - 15.0.0-ea.23
     name: PostgreSQL Decoderbufs - Java ${{ matrix.java }}
     steps:
     - uses: actions/checkout@v2
@@ -67,7 +67,7 @@ jobs:
       matrix:
         java:
         - "14"
-        - "15"
+        - 15.0.0-ea.23
     name: PostgreSQL Wal2JSON - Java ${{ matrix.java }}
     steps:
     - uses: actions/checkout@v2
@@ -87,7 +87,7 @@ jobs:
       matrix:
         java:
         - "14"
-        - "15"
+        - 15.0.0-ea.23
     name: PostgreSQL Pgoutput - Java ${{ matrix.java }}
     steps:
     - uses: actions/checkout@v2
@@ -107,7 +107,7 @@ jobs:
       matrix:
         java:
         - "14"
-        - "15"
+        - 15.0.0-ea.23
     name: MongoDB 3.2 - Java ${{ matrix.java }}
     steps:
     - uses: actions/checkout@v2
@@ -126,7 +126,7 @@ jobs:
       matrix:
         java:
         - "14"
-        - "15"
+        - 15.0.0-ea.23
     name: MongoDB 3.6 - Java ${{ matrix.java }}
     steps:
     - uses: actions/checkout@v2
@@ -145,7 +145,7 @@ jobs:
       matrix:
         java:
         - "14"
-        - "15"
+        - 15.0.0-ea.23
     name: MongoDB 4.0 - Java ${{ matrix.java }}
     steps:
     - uses: actions/checkout@v2
@@ -164,7 +164,7 @@ jobs:
       matrix:
         java:
         - "14"
-        - "15"
+        - 15.0.0-ea.23
     name: Quarkus Outbox Extension - Java ${{ matrix.java }}
     steps:
     - uses: actions/checkout@v2
@@ -183,7 +183,7 @@ jobs:
       matrix:
         java:
         - "14"
-        - "15"
+        - 15.0.0-ea.23
     name: Testing module - Java ${{ matrix.java }}
     steps:
     - uses: actions/checkout@v2
