@@ -1,6 +1,7 @@
 name: Java Quality Outreach
 
 'on':
+  push:
   schedule:
     - cron: "0 0 * * *"
 
@@ -9,7 +10,7 @@ name: Java Quality Outreach
 jobs:
 #@ for job in data.values.jobs:
   (@= job.key @):
-    runs-on: ubuntu
+    runs-on: ubuntu-latest
     strategy:
       matrix:
         java: ['14', '15']
