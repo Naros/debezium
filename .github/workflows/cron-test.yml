@@ -1,0 +1,23 @@
+name: Cron Test
+on:
+  schedule:
+    - cron: "*/5 * *  * *"
+jobs:
+  simple:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        java:
+          - "14"
+          - "15.0.0-ea.23"
+    name: Cron - Java ${{ matrix.java }}
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: recursive
+      - name: Setup OpenJDK
+        uses: actions/setup-java@v1.3.0
+        with:
+          java-version: ${{ matrix.java }}
+      - name: Maven
+        run: "mvn clean install -B -pl debezium-testing -am -amd -Passembly -Dformat.formatter.goal=validate -Dformat.imports.goal=check -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn"
