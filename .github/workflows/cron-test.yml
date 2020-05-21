@@ -1,7 +1,7 @@
 name: "Cron Test"
 on:
   schedule:
-    - cron: "*/5 * *  * *"
+    - cron: "*/5 * * * *"
 jobs:
   simple:
     runs-on: ubuntu-latest
