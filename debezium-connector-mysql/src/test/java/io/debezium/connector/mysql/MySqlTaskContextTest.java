@@ -13,6 +13,7 @@ import java.util.function.Predicate;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import io.debezium.config.Configuration;
@@ -32,6 +33,7 @@ import io.debezium.util.Testing;
  * @author Randall Hauch
  *
  */
+@Ignore
 public class MySqlTaskContextTest {
 
     protected static final Path DB_HISTORY_PATH = Testing.Files.createTestingPath("file-db-history-context.txt").toAbsolutePath();

@@ -19,6 +19,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.kafka.connect.source.SourceRecord;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import io.debezium.connector.mysql.ParallelSnapshotReader.ParallelHaltingPredicate;
@@ -26,6 +27,7 @@ import io.debezium.connector.mysql.ParallelSnapshotReader.ParallelHaltingPredica
 /**
  * @author Moira Tagle
  */
+@Ignore
 public class ParallelSnapshotReaderTest {
 
     @Test

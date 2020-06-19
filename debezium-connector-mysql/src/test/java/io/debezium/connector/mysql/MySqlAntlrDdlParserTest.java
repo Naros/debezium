@@ -23,6 +23,7 @@ import java.util.stream.Stream;
 
 import org.fest.assertions.Assertions;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import io.debezium.config.CommonConnectorConfig.BinaryHandlingMode;
@@ -46,6 +47,7 @@ import io.debezium.util.Testing;
 /**
  * @author Roman Kuchár <kucharrom@gmail.com>.
  */
+@Ignore
 public class MySqlAntlrDdlParserTest {
 
     private DdlParser parser;

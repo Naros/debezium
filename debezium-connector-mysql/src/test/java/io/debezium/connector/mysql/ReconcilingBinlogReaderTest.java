@@ -12,11 +12,13 @@ import java.util.Map;
 
 import org.apache.kafka.connect.source.SourceRecord;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 
 /**
  * @author Moira Tagle
  */
+@Ignore
 public class ReconcilingBinlogReaderTest {
 
     @Test

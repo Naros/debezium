@@ -15,6 +15,7 @@ import org.apache.kafka.connect.data.Struct;
 import org.apache.kafka.connect.source.SourceRecord;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import io.debezium.config.Configuration;
@@ -28,6 +29,7 @@ import io.debezium.util.Testing;
  *
  * @author Gunnar Morling
  */
+@Ignore
 public class TopicNameSanitizationIT extends AbstractConnectorTest {
 
     private static final Path DB_HISTORY_PATH = Testing.Files.createTestingPath("file-db-history-topic-name-sanitization.txt")

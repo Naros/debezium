@@ -18,6 +18,7 @@ import org.fest.assertions.Delta;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import io.debezium.config.Configuration;
@@ -33,6 +34,7 @@ import mil.nga.wkb.io.WkbGeometryReader;
 /**
  * @author Omar Al-Safi
  */
+@Ignore
 @SkipWhenDatabaseVersion(check = LESS_THAN, major = 5, minor = 6, reason = "Function ST_GeomFromText not added until MySQL 5.6")
 public class MySqlGeometryIT extends AbstractConnectorTest {
 

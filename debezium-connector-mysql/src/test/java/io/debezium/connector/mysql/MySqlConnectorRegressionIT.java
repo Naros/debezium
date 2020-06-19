@@ -31,6 +31,7 @@ import org.apache.kafka.connect.data.Struct;
 import org.fest.assertions.Delta;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import io.debezium.config.Configuration;
@@ -48,6 +49,7 @@ import io.debezium.util.Testing;
 /**
  * @author Randall Hauch
  */
+@Ignore
 @SkipWhenDatabaseVersion(check = LESS_THAN, major = 5, minor = 6, reason = "DDL uses fractional second data types, not supported until MySQL 5.6")
 public class MySqlConnectorRegressionIT extends AbstractConnectorTest {
 

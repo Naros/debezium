@@ -9,11 +9,13 @@ import static org.junit.Assert.assertEquals;
 
 import java.math.BigDecimal;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 /**
  * @author Omar Al-Safi
  */
+@Ignore
 public class MySqlUnsignedIntegerConverterTest {
 
     @Test

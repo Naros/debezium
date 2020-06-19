@@ -17,6 +17,7 @@ import org.apache.kafka.connect.data.Field;
 import org.apache.kafka.connect.source.SourceRecord;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import io.debezium.config.Configuration;
@@ -29,6 +30,7 @@ import io.debezium.util.Testing;
  *
  * @author Gunnar Morling
  */
+@Ignore
 public class MySqlSourceTypeInSchemaIT extends AbstractConnectorTest {
 
     private static final String TYPE_NAME_PARAMETER_KEY = "__debezium.source.column.type";

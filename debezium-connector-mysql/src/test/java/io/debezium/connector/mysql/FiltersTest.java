@@ -8,6 +8,7 @@ package io.debezium.connector.mysql;
 import static org.fest.assertions.Assertions.assertThat;
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import io.debezium.doc.FixFor;
@@ -16,6 +17,7 @@ import io.debezium.relational.TableId;
 /**
  * @author Randall Hauch
  */
+@Ignore
 public class FiltersTest {
 
     private Configurator build;

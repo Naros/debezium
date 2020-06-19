@@ -18,6 +18,7 @@ import java.util.function.Consumer;
 import org.apache.kafka.connect.data.Struct;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import io.debezium.config.Configuration;
@@ -30,6 +31,7 @@ import io.debezium.util.Testing;
 /**
  * @author Randall Hauch
  */
+@Ignore
 @SkipWhenDatabaseVersion(check = LESS_THAN, major = 5, minor = 7, reason = "JSON data type was not added until MySQL 5.7")
 public class MySqlConnectorJsonIT extends AbstractConnectorTest {
 

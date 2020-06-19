@@ -15,6 +15,7 @@ import java.util.Set;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import io.debezium.config.Configuration;
@@ -30,6 +31,7 @@ import io.debezium.util.Testing;
 /**
  * @author Randall Hauch
  */
+@Ignore
 public class MySqlSchemaTest {
 
     private static final Path TEST_FILE_PATH = Testing.Files.createTestingPath("dbHistory.log");

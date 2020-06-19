@@ -13,6 +13,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import io.debezium.connector.mysql.GtidSet.Interval;
@@ -23,6 +24,7 @@ import io.debezium.util.Collect;
  * @author Randall Hauch
  *
  */
+@Ignore
 public class GtidSetTest {
 
     private static final String UUID1 = "24bc7850-2c16-11e6-a073-0242ac110002";

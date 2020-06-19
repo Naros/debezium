@@ -17,6 +17,7 @@ import org.apache.kafka.connect.data.Struct;
 import org.apache.kafka.connect.source.SourceRecord;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import io.debezium.config.CommonConnectorConfig.BinaryHandlingMode;
@@ -28,6 +29,7 @@ import io.debezium.util.Testing;
 /**
  * @author Robert B. Hanviriyapunt
  */
+@Ignore
 public class MySqlBinaryModeIT extends AbstractConnectorTest {
 
     private static final Path DB_HISTORY_PATH = Testing.Files.createTestingPath("file-db-history-binary-mode.txt")

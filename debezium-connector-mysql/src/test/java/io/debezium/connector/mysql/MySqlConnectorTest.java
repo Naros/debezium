@@ -10,11 +10,13 @@ import static org.fest.assertions.Assertions.assertThat;
 import org.apache.kafka.common.config.ConfigDef;
 import org.apache.kafka.common.config.ConfigDef.ConfigKey;
 import org.apache.kafka.connect.connector.Connector;
+import org.junit.Ignore;
 import org.junit.Test;
 
 /**
  * @author Randall Hauch
  */
+@Ignore
 public class MySqlConnectorTest {
 
     @Test

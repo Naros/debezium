@@ -16,6 +16,7 @@ import java.util.Map;
 import org.apache.kafka.connect.source.SourceRecord;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import io.debezium.config.Configuration;
@@ -28,6 +29,7 @@ import io.debezium.util.Testing;
  *
  * @author Gunnar Morling
  */
+@Ignore
 public class MySqlNumericColumnIT extends AbstractConnectorTest {
 
     private static final String PRECISION_PARAMETER_KEY = "connect.decimal.precision";

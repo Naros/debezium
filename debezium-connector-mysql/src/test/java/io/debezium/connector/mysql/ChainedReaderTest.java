@@ -15,6 +15,7 @@ import java.util.function.Supplier;
 
 import org.apache.kafka.connect.source.SourceRecord;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import io.debezium.config.ConfigurationDefaults;
@@ -28,6 +29,7 @@ import io.debezium.util.Threads.Timer;
  * @author Randall Hauch
  *
  */
+@Ignore
 public class ChainedReaderTest {
 
     private static final List<SourceRecord> RL1 = Collect.arrayListOf(record());

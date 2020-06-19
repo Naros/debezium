@@ -20,6 +20,7 @@ import javax.management.ObjectName;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import io.debezium.connector.mysql.MySqlConnectorConfig.SnapshotMode;
@@ -32,6 +33,7 @@ import io.debezium.util.Testing;
 /**
  * @author Chris Cranford
  */
+@Ignore
 public class MySqlMetricsIT extends AbstractConnectorTest {
 
     private static final Path DB_HISTORY_PATH = Testing.Files.createTestingPath("file-db-history-metrics.txt").toAbsolutePath();

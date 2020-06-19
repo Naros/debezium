@@ -10,12 +10,14 @@ import static org.fest.assertions.Assertions.assertThat;
 import java.sql.SQLException;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 /**
  * @author Randall Hauch
  *
  */
+@Ignore
 public class MySqlTaskContextIT extends MySqlTaskContextTest {
 
     @Test

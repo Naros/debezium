@@ -20,6 +20,7 @@ import org.apache.kafka.connect.data.SchemaBuilder;
 import org.apache.kafka.connect.data.Struct;
 import org.fest.assertions.GenericAssert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import io.confluent.connect.avro.AvroData;
@@ -29,6 +30,7 @@ import io.debezium.data.VerifyRecord;
 import io.debezium.doc.FixFor;
 import io.debezium.document.Document;
 
+@Ignore
 public class LegacyV1SourceInfoTest {
 
     private static int avroSchemaCacheSize = 1000;

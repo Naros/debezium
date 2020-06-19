@@ -12,6 +12,7 @@ import java.sql.SQLException;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import io.debezium.config.Configuration;
@@ -22,6 +23,7 @@ import io.debezium.util.Testing;
 /**
  * @author Gunnar Morling
  */
+@Ignore
 public class MySqlTableMaintenanceStatementsIT extends AbstractConnectorTest {
 
     private static final Path DB_HISTORY_PATH = Testing.Files.createTestingPath("file-db-history-table-maintenance.txt")

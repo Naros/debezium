@@ -12,6 +12,7 @@ import java.nio.file.Path;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import io.debezium.config.Configuration;
@@ -23,6 +24,7 @@ import io.debezium.util.Testing;
 /**
  * @author Chris Cranford
  */
+@Ignore
 @SkipWhenDatabaseVersion(check = LESS_THAN, major = 5, minor = 6, patch = 5, reason = "MySQL 5.5 does not support CURRENT_TIMESTAMP on DATETIME and only a single column can specify default CURRENT_TIMESTAMP, lifted in MySQL 5.6.5")
 public class MySqlTimestampColumnIT extends AbstractConnectorTest {
     private static final Path DB_HISTORY_PATH = Testing.Files.createTestingPath("file-db-history-timestamp-column.txt").toAbsolutePath();

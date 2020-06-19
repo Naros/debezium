@@ -12,6 +12,7 @@ import java.sql.SQLException;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import io.debezium.config.Configuration;
@@ -23,6 +24,7 @@ import io.debezium.util.Testing;
 /**
  * @author Jiri Pechanec
  */
+@Ignore
 public class MySqlSchemaMigrationIT extends AbstractConnectorTest {
 
     private static final Path DB_HISTORY_PATH = Testing.Files.createTestingPath("file-db-history-json.txt")

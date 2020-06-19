@@ -15,6 +15,7 @@ import org.apache.kafka.connect.data.Struct;
 import org.apache.kafka.connect.source.SourceRecord;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import io.debezium.config.Configuration;
@@ -26,6 +27,7 @@ import io.debezium.util.Testing;
 /**
  * @author Chris Cranford
  */
+@Ignore
 @SkipWhenDatabaseVersion(check = LESS_THAN, major = 5, minor = 7, reason = "Generated values were not added until MySQL 5.7")
 public class MysqlDefaultGeneratedValueIT extends AbstractConnectorTest {
 

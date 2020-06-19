@@ -11,6 +11,7 @@ import static org.junit.Assert.assertTrue;
 
 import javax.xml.bind.DatatypeConverter;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import io.debezium.data.geometry.Point;
@@ -18,6 +19,7 @@ import io.debezium.data.geometry.Point;
 /**
  * @author Omar Al-Safi
  */
+@Ignore
 public class MySqlGeometryTest {
 
     @Test

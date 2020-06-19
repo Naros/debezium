@@ -16,6 +16,7 @@ import java.util.regex.Pattern;
 import org.fest.assertions.Assertions;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import io.debezium.config.Configuration;
@@ -32,6 +33,7 @@ import io.debezium.util.Testing;
  *
  * @author Jiri Pechanec
  */
+@Ignore
 @SkipWhenDatabaseVersion(check = LESS_THAN, major = 5, minor = 6, reason = "DDL uses fractional second data types, not supported until MySQL 5.6")
 public class ZZZGtidSetIT extends AbstractConnectorTest {
 

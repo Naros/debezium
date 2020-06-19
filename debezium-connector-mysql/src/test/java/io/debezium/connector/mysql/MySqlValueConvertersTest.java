@@ -13,6 +13,7 @@ import java.time.Month;
 import java.time.temporal.TemporalAdjuster;
 
 import org.apache.kafka.connect.data.Field;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import io.debezium.config.CommonConnectorConfig.BinaryHandlingMode;
@@ -29,6 +30,7 @@ import io.debezium.relational.ddl.DdlParser;
  * @author Randall Hauch
  *
  */
+@Ignore
 public class MySqlValueConvertersTest {
 
     private static final TemporalAdjuster ADJUSTER = MySqlValueConverters::adjustTemporal;
