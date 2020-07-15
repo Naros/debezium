@@ -229,16 +229,16 @@ public class TableSchemaBuilder {
             List<Column> columnsThatShouldBeAdded = columns.stream()
                     .filter(column -> filter == null || filter.matches(tableId.catalog(), tableId.schema(), tableId.table(), column.name()))
                     .collect(Collectors.toList());
-            int[] recordIndexes = indexesForColumns(columnsThatShouldBeAdded);
-            Field[] fields = fieldsForColumns(schema, columnsThatShouldBeAdded);
-            int numFields = columnsThatShouldBeAdded.size();
-            ValueConverter[] converters = convertersForColumns(schema, tableId, columnsThatShouldBeAdded, filter, mappers);
+            int[] recordIndexes = indexesForColumns(columns); //columnsThatShouldBeAdded);
+            Field[] fields = fieldsForColumns(schema, columns); //columnsThatShouldBeAdded);
+            int numFields = recordIndexes.length; //columnsThatShouldBeAdded.size();
+            ValueConverter[] converters = convertersForColumns(schema, tableId, columns /*columnsThatShouldBeAdded*/, filter, mappers);
             return (row) -> {
                 Struct result = new Struct(schema);
                 for (int i = 0; i != numFields; ++i) {
-                    //validateIncomingRowToInternalMetadata(recordIndexes, fields, converters, row, i);
-                    //Object value = row[recordIndexes[i]];
-                    Object value = row[i];
+                    validateIncomingRowToInternalMetadata(recordIndexes, fields, converters, row, i);
+                    Object value = row[recordIndexes[i]];
+                    //Object value = row[i];
                     ValueConverter converter = converters[i];
 
                     if (converter != null) {
@@ -307,6 +307,10 @@ public class TableSchemaBuilder {
 
         for (int i = 0; i < columns.size(); i++) {
             Column column = columns.get(i);
+
+            if (filter != null && !filter.matches(tableId.catalog(), tableId.schema(), tableId.table(), column.name())) {
+                continue;
+            }
 
             ValueConverter converter = createValueConverterFor(column, schema.field(column.name()));
             converter = wrapInMappingConverterIfNeeded(mappers, tableId, column, converter);
