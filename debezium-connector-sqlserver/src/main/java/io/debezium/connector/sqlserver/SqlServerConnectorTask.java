@@ -67,10 +67,10 @@ public class SqlServerConnectorTask extends BaseSourceTask {
 
     @Override
     public void start(Configuration config) {
-        /*if (!state.compareAndSet(State.STOPPED, State.RUNNING)) {
+        if (!state.compareAndSet(State.STOPPED, State.RUNNING)) {
             LOGGER.info("Connector has already been started");
             return;
-        }*/
+        }
 
         final SqlServerConnectorConfig connectorConfig = new SqlServerConnectorConfig(config);
         final TopicSelector<TableId> topicSelector = SqlServerTopicSelector.defaultSelector(connectorConfig);
@@ -187,10 +187,10 @@ public class SqlServerConnectorTask extends BaseSourceTask {
     }
 
     private void cleanupResources() {
-        /*if (!state.compareAndSet(State.RUNNING, State.STOPPED)) {
+        if (!state.compareAndSet(State.RUNNING, State.STOPPED)) {
             LOGGER.info("Connector has already been stopped");
             return;
-        }*/
+        }
 
         try {
             if (coordinator != null) {
