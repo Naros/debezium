@@ -154,6 +154,8 @@ public class RecordsStreamProducerIT extends AbstractRecordsProducerTest {
             consumer = testConsumer(1);
             consumer.await(TestHelper.waitTimeForRecords(), TimeUnit.SECONDS);
             consumer.remove();
+
+            waitForStreamingToStart();
         }
     }
 
