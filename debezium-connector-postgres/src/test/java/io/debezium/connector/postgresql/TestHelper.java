@@ -332,6 +332,18 @@ public final class TestHelper {
         }
     }
 
+    protected static void waitForDefaultReplicationSlotToBeInactive() {
+        try (PostgresConnection connection = create()) {
+            Awaitility.await().atMost(waitTimeForRecords() * 5, TimeUnit.SECONDS).until(() -> connection.prepareQueryAndMap(
+                    "select * from pg_replication_slots where slot_name = ? and database = ? and plugin = ? and active = false", statement -> {
+                        statement.setString(1, ReplicationConnection.Builder.DEFAULT_SLOT_NAME);
+                        statement.setString(2, "postgres");
+                        statement.setString(3, TestHelper.decoderPlugin().getPostgresPluginName());
+                    },
+                    rs -> rs.next()));
+        }
+    }
+
     protected static void assertNoOpenTransactions() throws SQLException {
         try (PostgresConnection connection = TestHelper.create()) {
             connection.setAutoCommit(true);

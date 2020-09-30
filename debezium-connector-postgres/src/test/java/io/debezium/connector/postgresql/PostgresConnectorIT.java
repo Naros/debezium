@@ -495,6 +495,9 @@ public class PostgresConnectorIT extends AbstractConnectorTest {
         stopConnector();
         assertNoRecordsToConsume();
 
+        // Wait for replication slot to be inactive
+        TestHelper.waitForDefaultReplicationSlotToBeInactive();
+
         // insert some more records and deleted the table
         TestHelper.execute(INSERT_STMT);
         TestHelper.execute("DROP TABLE s1.a");
