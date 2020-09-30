@@ -51,6 +51,7 @@ import org.apache.kafka.connect.source.SourceRecord;
 import org.apache.kafka.connect.storage.MemoryOffsetBackingStore;
 import org.awaitility.Awaitility;
 import org.fest.assertions.Assertions;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -137,6 +138,25 @@ public class RecordsStreamProducerIT extends AbstractRecordsProducerTest {
         }
 
         Testing.Print.enable();
+    }
+
+    @After
+    public void after() throws Exception {
+        Awaitility.await().atMost(TestHelper.waitTimeForRecords() * 5, TimeUnit.SECONDS).until(() -> {
+            try {
+                TestHelper.dropDefaultReplicationSlot();
+            }
+            catch (Exception e) {
+                return false;
+            }
+            try {
+                TestHelper.dropPublication();
+            }
+            catch (Exception e) {
+                return false;
+            }
+            return true;
+        });
     }
 
     private void startConnector(Function<Configuration.Builder, Configuration.Builder> customConfig, boolean waitForSnapshot, Predicate<SourceRecord> isStopRecord)
