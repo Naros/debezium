@@ -5,58 +5,42 @@
  */
 package io.debezium.outbox.quarkus.internal;
 
-import static io.debezium.outbox.quarkus.internal.OutboxConstants.OUTBOX_ENTITY_FULLNAME;
-
-import java.util.HashMap;
+import java.util.Map;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.event.Observes;
 import javax.inject.Inject;
-import javax.persistence.EntityManager;
 
-import org.hibernate.Session;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import io.debezium.outbox.quarkus.ExportedEvent;
-import io.opentracing.*;
+import io.opentracing.Scope;
+import io.opentracing.Span;
+import io.opentracing.Tracer;
 import io.opentracing.propagation.Format;
 import io.opentracing.tag.Tags;
 
+/**
+ * An application-scoped {@link EventDispatcher} implementation that is responsible not only
+ * for observing {@link ExportedEvent} events but also generating an open tracing span that
+ * is to be persisted with the event's data, allowing Debezium to capture and emit these as
+ * change events.
+ *
+ */
 @ApplicationScoped
-public class DebeziumTracerEventDispatcher {
+public class DebeziumTracerEventDispatcher extends AbstractEventDispatcher {
 
-    private static final String OPERATION_NAME = "outbox-write";
-    private static final String TIMESTAMP = "timestamp";
-    private static final String PAYLOAD = "payload";
-    private static final String TYPE = "type";
-    private static final String AGGREGATE_ID = "aggregateId";
-    private static final String AGGREGATE_TYPE = "aggregateType";
     public static final String TRACING_SPAN_CONTEXT = "tracingspancontext";
-
+    private static final String OPERATION_NAME = "outbox-write";
     private static final String TRACING_COMPONENT = "debezium";
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DebeziumTracerEventDispatcher.class);
 
     @Inject
-    EntityManager entityManager;
-
-    /**
-     * Debezium runtime configuration
-     */
-    @Inject
-    DebeziumOutboxRuntimeConfig config;
-
-    @Inject
     Tracer tracer;
 
-    /**
-     * An event handler for {@link ExportedEvent} events and will be called when
-     * the event fires.
-     *
-     * @param event
-     *            the exported event
-     */
+    @Override
     public void onExportedEvent(@Observes ExportedEvent<?, ?> event) {
         LOGGER.debug("An exported event was found for type {}", event.getType());
 
@@ -79,24 +63,9 @@ public class DebeziumTracerEventDispatcher {
                     Format.Builtin.TEXT_MAP, exportedSpanData);
 
             // Define the entity map-mode object using property names and values
-            final HashMap<String, Object> dataMap = new HashMap<>();
-            dataMap.put(AGGREGATE_TYPE, event.getAggregateType());
-            dataMap.put(AGGREGATE_ID, event.getAggregateId());
-            dataMap.put(TYPE, event.getType());
-            dataMap.put(PAYLOAD, event.getPayload());
-            dataMap.put(TIMESTAMP, event.getTimestamp());
+            final Map<String, Object> dataMap = getDataMapFromEvent(event);
             dataMap.put(TRACING_SPAN_CONTEXT, exportedSpanData.export());
-
-            // Unwrap to Hibernate session and save
-            Session session = entityManager.unwrap(Session.class);
-            session.save(OUTBOX_ENTITY_FULLNAME, dataMap);
-            session.setReadOnly(dataMap, true);
-
-            // Remove entity if the configuration deems doing so, leaving useful
-            // for debugging
-            if (config.removeAfterInsert) {
-                session.delete(OUTBOX_ENTITY_FULLNAME, dataMap);
-            }
+            persist(dataMap);
         }
     }
 }

@@ -30,6 +30,7 @@
         <dependency>
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-smallrye-opentracing-deployment</artifactId>
+            <scope>test</scope>
         </dependency>
 
         <!-- Debezium Quarkus Outbox Runtime artifact dependency -->
