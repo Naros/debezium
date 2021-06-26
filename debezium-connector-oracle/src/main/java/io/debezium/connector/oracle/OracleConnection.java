@@ -367,6 +367,10 @@ public class OracleConnection extends JdbcConnection {
         }
     }
 
+    public <T> T singleOptionalValue(String query, ResultSetExtractor<T> extractor) throws SQLException {
+        return queryAndMap(query, rs -> rs.next() ? extractor.apply(rs) : null);
+    }
+
     public static String connectionString(Configuration config) {
         return config.getString(URL) != null ? config.getString(URL)
                 : ConnectorAdapter.parse(config.getString("connection.adapter")).getConnectionUrl();
