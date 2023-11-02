@@ -592,6 +592,14 @@ public class OracleConnectorConfig extends HistorizedRelationalDatabaseConnector
             .withDescription("A comma-separated list of usernames that schema changes will be skipped for. Defaults to 'SYS,SYSTEM'.")
             .withDefault("SYS,SYSTEM");
 
+    public static final Field JSON_DEFAULT_GET_OBJECT_TYPE = Field.create(DRIVER_CONFIG_PREFIX + "oracle.jdbc.jsonDefaultGetObjectType")
+            .withDisplayName("Type used to parse JSON columns")
+            .withType(Type.STRING)
+            .withWidth(Width.MEDIUM)
+            .withImportance(Importance.LOW)
+            .withDescription("This property sets the default return type of getObject() methods when the column type is JSON")
+            .withDefault("java.lang.String");
+
     private static final ConfigDefinition CONFIG_DEFINITION = HistorizedRelationalDatabaseConnectorConfig.CONFIG_DEFINITION.edit()
             .name("Oracle")
             .excluding(
@@ -659,7 +667,8 @@ public class OracleConnectorConfig extends HistorizedRelationalDatabaseConnector
                     LOG_MINING_SCHEMA_CHANGES_USERNAME_EXCLUDE_LIST,
                     OLR_SOURCE,
                     OLR_HOST,
-                    OLR_PORT)
+                    OLR_PORT,
+                    JSON_DEFAULT_GET_OBJECT_TYPE)
             .events(SOURCE_INFO_STRUCT_MAKER)
             .create();
 

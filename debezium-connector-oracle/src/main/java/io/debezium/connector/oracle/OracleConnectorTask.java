@@ -66,7 +66,7 @@ public class OracleConnectorTask extends BaseSourceTask<OraclePartition, OracleO
 
         JdbcConfiguration jdbcConfig = connectorConfig.getJdbcConfig();
         MainConnectionProvidingConnectionFactory<OracleConnection> connectionFactory = new DefaultMainConnectionProvidingConnectionFactory<>(
-                () -> new OracleConnection(jdbcConfig));
+                () -> new OracleConnection(new OracleConnection.OracleConnectionConfiguration(jdbcConfig)));
         jdbcConnection = connectionFactory.mainConnection();
 
         validateRedoLogConfiguration(connectorConfig);
@@ -163,7 +163,7 @@ public class OracleConnectorTask extends BaseSourceTask<OraclePartition, OracleO
     }
 
     private OracleConnection getHeartbeatConnection(OracleConnectorConfig connectorConfig, JdbcConfiguration jdbcConfig) {
-        final OracleConnection connection = new OracleConnection(jdbcConfig);
+        final OracleConnection connection = new OracleConnection(new OracleConnection.OracleConnectionConfiguration(jdbcConfig));
         if (!Strings.isNullOrBlank(connectorConfig.getPdbName())) {
             connection.setSessionToPdb(connectorConfig.getPdbName());
         }

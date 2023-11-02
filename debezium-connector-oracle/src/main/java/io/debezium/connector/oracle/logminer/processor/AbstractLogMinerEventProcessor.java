@@ -1260,7 +1260,7 @@ public abstract class AbstractLogMinerEventProcessor<T extends AbstractTransacti
         LOGGER.info("Getting database metadata for table '{}'", tableId);
         // A separate connection must be used for this out-of-bands query while processing LogMiner results.
         // This should have negligible overhead since this use case should happen rarely.
-        try (OracleConnection connection = new OracleConnection(connectorConfig.getJdbcConfig(), false)) {
+        try (OracleConnection connection = new OracleConnection(new OracleConnection.OracleConnectionConfiguration(connectorConfig.getJdbcConfig()), false)) {
             connection.setAutoCommit(false);
             final String pdbName = getConfig().getPdbName();
             if (pdbName != null) {
