@@ -8,6 +8,7 @@ package io.debezium.kcrestextension;
 import static io.debezium.testing.testcontainers.testhelper.RestExtensionTestInfrastructure.DATABASE;
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.hamcrest.Matchers.hasItems;
 import static org.hamcrest.Matchers.is;
 
 import java.util.List;
@@ -111,8 +112,7 @@ public class DebeziumResourceIT {
                 .when().get(DebeziumResource.BASE_PATH + DebeziumResource.TRANSFORMS_ENDPOINT)
                 .then().log().all()
                 .statusCode(200)
-                .body("transform.size()", is(SUPPORTED_TRANSFORMS.size()))
-                .body("transform", containsInAnyOrder(SUPPORTED_TRANSFORMS.toArray()));
+                .body("transform", hasItems(SUPPORTED_TRANSFORMS.toArray()));
     }
 
     @Test
