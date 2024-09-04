@@ -33,6 +33,7 @@ jobs:
         with:
           repository: debezium/debezium-server
           path: server
+          ref: ${{ github.ref_name }}
 
       - uses: ./core/.github/actions/setup-java
 
