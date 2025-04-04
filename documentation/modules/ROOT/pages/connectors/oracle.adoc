@@ -21,6 +21,8 @@ ifdef::community[]
 
 toc::[]
 
+test a change
+
 [[oracle-overview]]
 == Overview
 endif::community[]
