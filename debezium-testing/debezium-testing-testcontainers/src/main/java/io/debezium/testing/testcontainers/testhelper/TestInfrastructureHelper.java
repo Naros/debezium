@@ -208,6 +208,10 @@ public class TestInfrastructureHelper {
         final String registry = debeziumContainerImageVersion.startsWith("1.2") ? "" : "quay.io/";
         final String debeziumVersion = debeziumContainerImageVersion.startsWith("1.2") ? "1.2.5.Final" : connectorVersion;
         String baseImageName = registry + "debezium/connect:nightly";
+
+        LOGGER.info("ProjectBuildDirectory={}, BASE_IMAGE={}, DEBEZIUM_VERSION={}", Paths.get(System.getProperty("project.build.directory")), baseImageName,
+                debeziumVersion);
+
         DEBEZIUM_CONTAINER = new DebeziumContainer(new ImageFromDockerfile("quay.io/debezium/connect-rest-test:" + debeziumVersion)
                 .withFileFromPath(".", Paths.get(System.getProperty("project.build.directory")))
                 .withFileFromPath("Dockerfile", Paths.get(System.getProperty("project.basedir") + "/src/test/resources/Dockerfile.rest.test"))

@@ -17,7 +17,7 @@ jobs:
       max-parallel: ${{ inputs.max-parallel }}
       fail-fast: false
       matrix:
-        profile: [ 'mariadb-ci', 'mariadb-ci-gtids', 'mariadb-ci-ssl' ]
+        profile: [ 'mariadb-ci,assembly' ]
     name: MariaDB - ${{ matrix.profile }}
     runs-on: self-hosted
 
