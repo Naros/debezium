@@ -19,7 +19,7 @@ jobs:
       matrix:
         profile: [ 'mariadb-ci', 'mariadb-ci-gtids', 'mariadb-ci-ssl' ]
     name: MariaDB - ${{ matrix.profile }}
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
 
     steps:
       - name: Checkout
