@@ -5,6 +5,8 @@
  */
 package io.debezium.sink.naming;
 
+import java.util.Map;
+
 /**
  * A pluggable strategy contract for defining how column names are resolved from kafka fields.
  *
@@ -18,4 +20,12 @@ public interface ColumnNamingStrategy {
      * @return the resolved logical column name, never {@code null}.
      */
     String resolveColumnName(String fieldName);
+
+    /**
+     * Configures the strategy.
+     *
+     * @param properties configuration properties; never {@code null}
+     */
+    default void configure(Map<String, String> properties) {
+    }
 }

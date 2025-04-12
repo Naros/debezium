@@ -399,9 +399,8 @@ public class JdbcSinkConnectorConfig implements SinkConnectorConfig {
         this.primaryKeyFields = Strings.setOf(config.getString(PRIMARY_KEY_FIELDS_FIELD), String::new);
         this.schemaEvolutionMode = SchemaEvolutionMode.parse(config.getString(SCHEMA_EVOLUTION));
         this.quoteIdentifiers = config.getBoolean(QUOTE_IDENTIFIERS_FIELD);
-        this.collectionNamingStrategy = new TemporaryBackwardCompatibleCollectionNamingStrategyProxy(
-                config.getInstance(COLLECTION_NAMING_STRATEGY_FIELD, CollectionNamingStrategy.class), this);
-        this.columnNamingStrategy = config.getInstance(COLUMN_NAMING_STRATEGY_FIELD, ColumnNamingStrategy.class);
+        this.collectionNamingStrategy = resolveCollectionNamingStrategy(config, props);
+        this.columnNamingStrategy = resolveColumnNamingStrategy(config, props);
         this.databaseTimezone = config.getString(USE_TIME_ZONE_FIELD);
         this.postgresPostgisSchema = config.getString(POSTGRES_POSTGIS_SCHEMA_FIELD);
         this.sqlServerIdentityInsert = config.getBoolean(SQLSERVER_IDENTITY_INSERT_FIELD);
@@ -555,6 +554,20 @@ public class JdbcSinkConnectorConfig implements SinkConnectorConfig {
 
     public String getConnectorName() {
         return Module.name();
+    }
+
+    private CollectionNamingStrategy resolveCollectionNamingStrategy(
+                                                                     Configuration config, Map<String, String> properties) {
+        final CollectionNamingStrategy namingStrategy = config.getInstance(COLLECTION_NAMING_STRATEGY_FIELD, CollectionNamingStrategy.class);
+        namingStrategy.configure(properties);
+        return new TemporaryBackwardCompatibleCollectionNamingStrategyProxy(namingStrategy, this);
+    }
+
+    private ColumnNamingStrategy resolveColumnNamingStrategy(
+                                                             Configuration config, Map<String, String> properties) {
+        final ColumnNamingStrategy namingStrategy = config.getInstance(COLUMN_NAMING_STRATEGY_FIELD, ColumnNamingStrategy.class);
+        namingStrategy.configure(properties);
+        return namingStrategy;
     }
 
     private static int validateInsertMode(Configuration config, Field field, ValidationOutput problems) {

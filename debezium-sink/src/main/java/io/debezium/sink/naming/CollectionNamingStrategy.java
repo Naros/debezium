@@ -5,6 +5,8 @@
  */
 package io.debezium.sink.naming;
 
+import java.util.Map;
+
 import io.debezium.sink.DebeziumSinkRecord;
 
 /**
@@ -23,4 +25,11 @@ public interface CollectionNamingStrategy {
      */
     String resolveCollectionName(DebeziumSinkRecord record, String collectionNameFormat);
 
+    /**
+     * Configure the strategy.
+     *
+     * @param properties configuration properties; never {@code null}
+     */
+    default void configure(Map<String, String> properties) {
+    }
 }
