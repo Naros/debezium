@@ -40,6 +40,8 @@ import io.debezium.util.Strings;
  */
 public class CommitScn implements Comparable<Scn> {
 
+    // Testing an Oracle change
+
     public static final String ROLLBACK_SEGMENT_ID_KEY = "rs_id";
     public static final String SQL_SEQUENCE_NUMBER_KEY = "ssn";
     public static final String REDO_THREAD_KEY = "redo_thread";
