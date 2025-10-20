@@ -839,7 +839,7 @@
                             <images>
                                 <!-- A container for the data server replica set -->
                                 <image>
-                                    <name>quay.io/apicurio/apicurio-registry-mem:${version.apicurio}</name>
+                                    <name>quay.io/apicurio/apicurio-registry:${version.apicurio}</name>
                                     <run>
                                         <namingStrategy>none</namingStrategy>
                                         <ports>
