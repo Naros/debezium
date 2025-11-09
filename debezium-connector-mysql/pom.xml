@@ -584,7 +584,10 @@
                         <skipLongRunningTests>${skipLongRunningTests}</skipLongRunningTests>
                         <database.ssl.mode>disabled</database.ssl.mode>
                     </systemPropertyVariables>
-                    <argLine>-javaagent:"${settings.localRepository}/@{opentelemetry.agent.for.testing.artifact.relative.path}" -Dio.opentelemetry.javaagent.slf4j.simpleLogger.defaultLogLevel=off</argLine>
+                    <argLine>
+                        -Dnet.bytebuddy.experimental=${net.bytebuddy.experimental}
+                        -javaagent:"${settings.localRepository}/@{opentelemetry.agent.for.testing.artifact.relative.path}" -Dio.opentelemetry.javaagent.slf4j.simpleLogger.defaultLogLevel=off
+                    </argLine>
                     <runOrder>${runOrder}</runOrder>
                 </configuration>
                 <executions>

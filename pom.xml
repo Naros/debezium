@@ -74,6 +74,9 @@
         <!-- Minimum JDK version required for building the project -->
         <jdk.min.version>${debezium.java.source}</jdk.min.version>
 
+        <!-- JavaAgent Support with Experimental Bytebuddy Features -->
+        <net.bytebuddy.experimental>false</net.bytebuddy.experimental>
+
         <!-- Maven Plugins -->
         <version.compiler.plugin>3.13.0</version.compiler.plugin>
         <version.resources.plugin>3.1.0</version.resources.plugin>

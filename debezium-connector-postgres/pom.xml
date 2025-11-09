@@ -344,7 +344,10 @@
                         <plugin.name>${decoder.plugin.name}</plugin.name>
                         <skipLongRunningTests>${skipLongRunningTests}</skipLongRunningTests>
                     </systemPropertyVariables>
-                    <argLine>-javaagent:"${settings.localRepository}/@{opentelemetry.agent.for.testing.artifact.relative.path}" -Dio.opentelemetry.javaagent.slf4j.simpleLogger.defaultLogLevel=off</argLine>
+                    <argLine>
+                        -Dnet.bytebuddy.experimental=${net.bytebuddy.experimental}
+                        -javaagent:"${settings.localRepository}/@{opentelemetry.agent.for.testing.artifact.relative.path}" -Dio.opentelemetry.javaagent.slf4j.simpleLogger.defaultLogLevel=off
+                    </argLine>
                     <runOrder>${runOrder}</runOrder>
                 </configuration>
             </plugin>
