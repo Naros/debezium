@@ -246,6 +246,15 @@ public abstract class AbstractLogMinerStreamingChangeEventSource
      */
     protected abstract void handleTruncateEvent(LogMinerEventRow event) throws InterruptedException;
 
+    /**
+     * Create the data change event object from the row and parsed data.
+     *
+     * @param event the data change event row, should not be {@code null}
+     * @param parsedEvent the parsed DML details, should not be {@code null}
+     * @return the resolved event, never {@code null}
+     */
+    protected abstract LogMinerEvent createDataChangeEvent(LogMinerEventRow event, LogMinerDmlEntry parsedEvent);
+
     protected ChangeEventSourceContext getContext() {
         return context;
     }
