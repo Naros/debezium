@@ -597,7 +597,7 @@ jobs:
       - name: Build (Db2)
         run: >
           ./db2/mvnw clean install -f db2/pom.xml
-          -pl ${{ env.MAVEN_FULL_BUILD_PROJECTS }}
+          -Passembly ${{ matrix.feature.args }}
           -Dformat.skip=true
           -Dcheckstyle.skip=true
           -Dorg.slf4j.simpleLogger.showDateTime=true
