@@ -43,6 +43,7 @@ public class SqlServerChangeTablePointer extends ChangeTableResultSet<SqlServerC
     private static final int COL_COMMIT_LSN = 1;
     private static final int COL_ROW_LSN = 2;
     private static final int COL_OPERATION = 3;
+    private static final int COL_UPDATE_MASK = 4;
     private static final int COL_DATA = 5;
 
     private ResultSetMapper<Object[]> resultSetMapper;
@@ -134,19 +135,81 @@ public class SqlServerChangeTablePointer extends ChangeTableResultSet<SqlServerC
         }
         final int resultColumnCount = resultColumns.size();
 
+        // Identify which columns are MAX type columns (VARBINARY(MAX), VARCHAR(MAX), NVARCHAR(MAX)).
+        // These appear as NULL in the CDC capture table when not modified in an UPDATE, and need to
+        // be replaced with the UNAVAILABLE_VALUE sentinel so they can be exposed via the
+        // unavailable.value.placeholder configuration.
+        final boolean[] isMaxColumn = new boolean[resultColumnCount];
+        for (int i = 0; i < resultColumnCount; i++) {
+            final Column column = columnMap.getSourceTableColumns().get(resultColumns.get(i));
+            if (column != null) {
+                final int jdbcType = column.jdbcType();
+                isMaxColumn[i] = (jdbcType == Types.LONGVARBINARY
+                        || jdbcType == Types.LONGVARCHAR
+                        || jdbcType == Types.LONGNVARCHAR);
+            }
+        }
+
         final IndicesMapping indicesMapping = new IndicesMapping(columnMap.getSourceTableColumns(), resultColumns);
         return resultSet -> {
             final Object[] data = new Object[columnMap.getGreatestColumnPosition()];
+
+            // For UPDATE operations, read the update mask to detect unchanged MAX columns.
+            // The __$update_mask bitmask has a bit set for each column that was modified;
+            // MAX columns with their bit unset were not changed and have NULL in the CDC table.
+            final int operation = resultSet.getInt(COL_OPERATION);
+            final byte[] updateMask;
+            if (operation == SqlServerChangeRecordEmitter.OP_UPDATE_BEFORE
+                    || operation == SqlServerChangeRecordEmitter.OP_UPDATE_AFTER) {
+                updateMask = resultSet.getBytes(COL_UPDATE_MASK);
+            }
+            else {
+                updateMask = null;
+            }
+
             for (int i = 0; i < resultColumnCount; i++) {
                 int index = indicesMapping.getSourceTableColumnIndex(i);
                 if (index == INVALID_COLUMN_INDEX) {
                     LOGGER.trace("Data for table '{}' contains a column without position mapping", table.id());
                     continue;
                 }
-                data[index] = getColumnData(resultSet, columnDataOffset + i);
+                Object value = getColumnData(resultSet, columnDataOffset + i);
+
+                // If this is a MAX column in an UPDATE operation and its bit is not set in the
+                // update mask, the column was not changed. Replace NULL with UNAVAILABLE_VALUE to
+                // distinguish it from a column that was explicitly set to NULL.
+                if (updateMask != null && isMaxColumn[i] && value == null
+                        && !isColumnInUpdateMask(updateMask, i)) {
+                    value = SqlServerValueConverters.UNAVAILABLE_VALUE;
+                }
+
+                data[index] = value;
             }
             return data;
         };
+    }
+
+    /**
+     * Checks whether the column at the given 0-based index within the capture instance has
+     * its bit set in the SQL Server CDC {@code __$update_mask}.
+     *
+     * <p>The update mask uses one bit per captured column, ordered by column ordinal (LSB first).
+     * A set bit indicates the column was modified in the UPDATE operation.
+     *
+     * @param updateMask the raw bytes of {@code __$update_mask}; may be null
+     * @param columnIndex the 0-based index of the column within the capture instance
+     * @return {@code true} if the column's bit is set, {@code false} otherwise
+     */
+    private static boolean isColumnInUpdateMask(byte[] updateMask, int columnIndex) {
+        if (updateMask == null || updateMask.length == 0) {
+            return false;
+        }
+        final int byteIndex = columnIndex / 8;
+        final int bitIndex = columnIndex % 8;
+        if (byteIndex >= updateMask.length) {
+            return false;
+        }
+        return (updateMask[byteIndex] & (1 << bitIndex)) != 0;
     }
 
     private class IndicesMapping {

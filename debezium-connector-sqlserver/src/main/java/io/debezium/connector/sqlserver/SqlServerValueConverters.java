@@ -31,7 +31,20 @@ import microsoft.sql.DateTimeOffset;
  */
 public class SqlServerValueConverters extends JdbcValueConverters {
 
+    /**
+     * Marker value indicating an unavailable column value.
+     * Used for VARBINARY(MAX), VARCHAR(MAX), and NVARCHAR(MAX) columns that were
+     * not changed in an UPDATE operation and therefore appear as NULL in the CDC
+     * capture table.
+     */
+    public static final Object UNAVAILABLE_VALUE = new Object();
+
+    private final byte[] unavailableValuePlaceholderBinary;
+    private final String unavailableValuePlaceholderString;
+
     public SqlServerValueConverters() {
+        this.unavailableValuePlaceholderBinary = null;
+        this.unavailableValuePlaceholderString = null;
     }
 
     /**
@@ -51,6 +64,30 @@ public class SqlServerValueConverters extends JdbcValueConverters {
     public SqlServerValueConverters(DecimalMode decimalMode, TemporalPrecisionMode temporalPrecisionMode,
                                     CommonConnectorConfig.BinaryHandlingMode binaryMode) {
         super(decimalMode, temporalPrecisionMode, ZoneOffset.UTC, null, null, binaryMode);
+        this.unavailableValuePlaceholderBinary = null;
+        this.unavailableValuePlaceholderString = null;
+    }
+
+    /**
+     * Create a new instance that always uses UTC for the default time zone when
+     * converting values without timezone information to values that require
+     * timezones, and supports the unavailable value placeholder for MAX type columns.
+     *
+     * @param decimalMode
+     *            how {@code DECIMAL} and {@code NUMERIC} values should be treated
+     * @param temporalPrecisionMode
+     *            date/time value will be represented either as Connect datatypes or Debezium specific datatypes
+     * @param binaryMode
+     *            how binary columns should be represented
+     * @param unavailableValuePlaceholder
+     *            the placeholder bytes used when a MAX column value is unavailable
+     */
+    public SqlServerValueConverters(DecimalMode decimalMode, TemporalPrecisionMode temporalPrecisionMode,
+                                    CommonConnectorConfig.BinaryHandlingMode binaryMode,
+                                    byte[] unavailableValuePlaceholder) {
+        super(decimalMode, temporalPrecisionMode, ZoneOffset.UTC, null, null, binaryMode);
+        this.unavailableValuePlaceholderBinary = unavailableValuePlaceholder;
+        this.unavailableValuePlaceholderString = unavailableValuePlaceholder != null ? new String(unavailableValuePlaceholder) : null;
     }
 
     @Override
@@ -91,6 +128,22 @@ public class SqlServerValueConverters extends JdbcValueConverters {
             default:
                 return super.converter(column, fieldDefn);
         }
+    }
+
+    @Override
+    protected Object convertString(Column column, Field fieldDefn, Object data) {
+        if (data == UNAVAILABLE_VALUE) {
+            return unavailableValuePlaceholderString;
+        }
+        return super.convertString(column, fieldDefn, data);
+    }
+
+    @Override
+    protected Object convertBinary(Column column, Field fieldDefn, Object data, BinaryHandlingMode mode) {
+        if (data == UNAVAILABLE_VALUE) {
+            data = unavailableValuePlaceholderBinary;
+        }
+        return super.convertBinary(column, fieldDefn, data, mode);
     }
 
     /**
