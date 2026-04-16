@@ -309,6 +309,50 @@ public class JdbcSinkInsertModeIT extends AbstractJdbcSinkInsertModeTest {
 
     }
 
+    @ParameterizedTest
+    @ArgumentsSource(PostgresInsertModeArgumentsProvider.class)
+    @FixFor("DBZ-1658")
+    public void testInsertModeInfinityValueAsNonFirstRecordInBatch(SinkRecordFactory factory, PostgresInsertMode insertMode) throws SQLException {
+
+        final Map<String, String> properties = getDefaultSinkConfig();
+        properties.put(JdbcSinkConnectorConfig.SCHEMA_EVOLUTION, SchemaEvolutionMode.BASIC.getValue());
+        properties.put(JdbcSinkConnectorConfig.PRIMARY_KEY_MODE, PrimaryKeyMode.RECORD_VALUE.getValue());
+        properties.put(JdbcSinkConnectorConfig.PRIMARY_KEY_FIELDS, "id");
+        properties.put(JdbcSinkConnectorConfig.INSERT_MODE, InsertMode.INSERT.getValue());
+        properties.put(JdbcSinkConnectorConfig.POSTGRES_UNNEST_INSERT, String.valueOf(insertMode.isUnnestEnabled()));
+
+        startSinkConnector(properties);
+        assertSinkConnectorIsRunning();
+
+        final String tableName = randomTableName();
+        final String topicName = topicName("server1", "schema", tableName);
+
+        final Schema zonedTimestampSchema = SchemaBuilder.string()
+                .name("io.debezium.time.ZonedTimestamp")
+                .build();
+
+        final JdbcSinkConnectorConfig config = new JdbcSinkConnectorConfig(properties);
+
+        // First record has a normal timestamp value
+        final JdbcKafkaSinkRecord normalRecord = factory.createRecordWithSchemaValue(topicName, (byte) 1,
+                List.of("ts"),
+                List.of(zonedTimestampSchema),
+                Arrays.asList(new Object[]{ "2024-01-15T12:00:00Z" }), config);
+
+        // Second record has -infinity; batched together with normalRecord
+        final JdbcKafkaSinkRecord negativeInfinityRecord = factory.createRecordWithSchemaValue(topicName, (byte) 2,
+                List.of("ts"),
+                List.of(zonedTimestampSchema),
+                Arrays.asList(new Object[]{ "-infinity" }), config);
+
+        consume(List.of(normalRecord, negativeInfinityRecord));
+
+        final TableAssert tableAssert = TestHelper.assertTable(assertDbConnection(), destinationTableName(normalRecord));
+        tableAssert.exists().hasNumberOfRows(2).hasNumberOfColumns(2);
+
+        getSink().assertColumnType(tableAssert, "id", ValueType.NUMBER, (byte) 1, (byte) 2);
+    }
+
     private static Schema buildGeoTypeSchema(String type) {
 
         SchemaBuilder schemaBuilder = SchemaBuilder.struct()
