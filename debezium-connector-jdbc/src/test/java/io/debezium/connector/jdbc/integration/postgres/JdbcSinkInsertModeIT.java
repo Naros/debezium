@@ -309,6 +309,43 @@ public class JdbcSinkInsertModeIT extends AbstractJdbcSinkInsertModeTest {
 
     }
 
+    @ParameterizedTest
+    @ArgumentsSource(PostgresInsertModeArgumentsProvider.class)
+    @FixFor("DBZ-1658")
+    public void testInsertModeInsertInfinityValueNotFirstInBatch(SinkRecordFactory factory, PostgresInsertMode insertMode) throws SQLException {
+
+        final Map<String, String> properties = getDefaultSinkConfig();
+        properties.put(JdbcSinkConnectorConfig.SCHEMA_EVOLUTION, SchemaEvolutionMode.BASIC.getValue());
+        properties.put(JdbcSinkConnectorConfig.PRIMARY_KEY_MODE, PrimaryKeyMode.RECORD_VALUE.getValue());
+        properties.put(JdbcSinkConnectorConfig.PRIMARY_KEY_FIELDS, "id");
+        properties.put(JdbcSinkConnectorConfig.INSERT_MODE, InsertMode.INSERT.getValue());
+        properties.put(JdbcSinkConnectorConfig.POSTGRES_UNNEST_INSERT, String.valueOf(insertMode.isUnnestEnabled()));
+
+        startSinkConnector(properties);
+        assertSinkConnectorIsRunning();
+
+        final String tableName = randomTableName();
+        final String topicName = topicName("server1", "schema", tableName);
+
+        final Schema zonedTimestampSchema = SchemaBuilder.string()
+                .name("io.debezium.time.ZonedTimestamp")
+                .build();
+
+        final JdbcSinkConnectorConfig config = new JdbcSinkConnectorConfig(properties);
+        final JdbcKafkaSinkRecord normalRecord = factory.createRecordWithSchemaValue(topicName, (byte) 1,
+                "ts", zonedTimestampSchema, "2023-05-10T16:00:00.000000+00:00", config);
+        final JdbcKafkaSinkRecord infinityRecord = factory.createRecordWithSchemaValue(topicName, (byte) 2,
+                "ts", zonedTimestampSchema, "-infinity", config);
+
+        consume(List.of(normalRecord, infinityRecord));
+
+        final String destinationTable = destinationTableName(normalRecord);
+        final TableAssert tableAssert = TestHelper.assertTable(assertDbConnection(), destinationTable);
+        tableAssert.exists().hasNumberOfRows(2).hasNumberOfColumns(2);
+
+        getSink().assertColumnType(tableAssert, "id", ValueType.NUMBER, (byte) 1, (byte) 2);
+    }
+
     private static Schema buildGeoTypeSchema(String type) {
 
         SchemaBuilder schemaBuilder = SchemaBuilder.struct()
