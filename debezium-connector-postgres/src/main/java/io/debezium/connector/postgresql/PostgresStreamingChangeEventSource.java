@@ -64,6 +64,13 @@ public class PostgresStreamingChangeEventSource implements StreamingChangeEventS
     // We thus try to read the message multiple times before we make poll pause
     private static final int THROTTLE_NO_MESSAGE_BEFORE_PAUSE = 5;
 
+    /**
+     * Interval in milliseconds after which a warning is logged when the WAL position search
+     * has not completed. A stalled search may indicate that the replication slot's flushed LSN
+     * has advanced past the last committed offset LSN.
+     */
+    private static final long WAL_SEARCH_STALLED_WARNING_INTERVAL_MS = 300_000L;
+
     private final PostgresConnection connection;
     private final PostgresEventDispatcher<TableId> dispatcher;
     private final ErrorHandler errorHandler;
@@ -171,6 +178,7 @@ public class PostgresStreamingChangeEventSource implements StreamingChangeEventS
                         : this.effectiveOffset.lsn();
                 final Operation lastProcessedMessageType = this.effectiveOffset.lastProcessedMessageType();
                 LOGGER.info("Retrieved latest position from stored offset '{}'", lsn);
+                warnIfSlotFlushedLsnAheadOfOffset(lsn);
                 walPosition = new WalPositionLocator(this.effectiveOffset.lastCommitLsn(), lsn, lastProcessedMessageType);
                 replicationStream.compareAndSet(null, replicationConnection.startStreaming(lsn, walPosition));
             }
@@ -417,10 +425,11 @@ public class PostgresStreamingChangeEventSource implements StreamingChangeEventS
     private void searchWalPosition(ChangeEventSourceContext context, PostgresPartition partition, PostgresOffsetContext offsetContext,
                                    final ReplicationStream stream, final WalPositionLocator walPosition)
             throws SQLException, InterruptedException {
-        AtomicReference<Lsn> resumeLsn = new AtomicReference<>();
+        final AtomicReference<Lsn> resumeLsn = new AtomicReference<>();
         int noMessageIterations = 0;
 
         LOGGER.info("Searching for WAL resume position");
+        final var walSearchStalledTimer = ElapsedTimeStrategy.constant(clock, WAL_SEARCH_STALLED_WARNING_INTERVAL_MS);
         while (context.isRunning() && resumeLsn.get() == null) {
 
             boolean receivedMessage = stream.readPending(message -> {
@@ -440,9 +449,31 @@ public class PostgresStreamingChangeEventSource implements StreamingChangeEventS
                 }
             }
 
+            if (walSearchStalledTimer.hasElapsed()) {
+                LOGGER.warn("WAL position search has not completed after an extended period. "
+                        + "This may indicate that the replication slot's flushed LSN is ahead of the offset LSN, "
+                        + "preventing the connector from locating the correct resume point. "
+                        + "Consider checking the replication slot state and the connector offsets.");
+            }
+
             probeConnectionIfNeeded();
         }
         LOGGER.info("WAL resume position '{}' discovered", resumeLsn.get());
+    }
+
+    private void warnIfSlotFlushedLsnAheadOfOffset(Lsn offsetLsn) {
+        try {
+            final var slotState = connection.getReplicationSlotState(connectorConfig.slotName(), connectorConfig.plugin().getPostgresPluginName());
+            if (slotState != null && slotState.slotLastFlushedLsn() != null
+                    && slotState.slotLastFlushedLsn().compareTo(offsetLsn) > 0) {
+                LOGGER.warn("Replication slot's latest flushed LSN '{}' is ahead of the last processed offset LSN '{}'. "
+                        + "The WAL search may run indefinitely because the target position has already been consumed by the replication slot.",
+                        slotState.slotLastFlushedLsn(), offsetLsn);
+            }
+        }
+        catch (SQLException e) {
+            LOGGER.warn("Unable to read replication slot state to verify LSN position against offset", e);
+        }
     }
 
     private void probeConnectionIfNeeded() throws SQLException {
