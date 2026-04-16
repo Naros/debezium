@@ -8,6 +8,7 @@ package io.debezium.config;
 import static io.debezium.config.CommonConnectorConfig.DRIVER_CONFIG_PREFIX;
 import static io.debezium.config.CommonConnectorConfig.TOPIC_PREFIX;
 import static io.debezium.config.ConfigurationNames.DATABASE_CONFIG_PREFIX;
+import static io.debezium.config.ConfigurationNames.INTERNAL_DATABASE_CONFIG_PREFIX;
 import static io.debezium.relational.RelationalDatabaseConnectorConfig.COLUMN_EXCLUDE_LIST;
 import static io.debezium.relational.RelationalDatabaseConnectorConfig.COLUMN_INCLUDE_LIST;
 import static io.debezium.relational.RelationalDatabaseConnectorConfig.HOSTNAME;
@@ -28,6 +29,7 @@ import org.junit.jupiter.api.Test;
 
 import io.debezium.doc.FixFor;
 import io.debezium.function.Predicates;
+import io.debezium.junit.relational.TestRelationalDatabaseConfig;
 import io.debezium.relational.RelationalDatabaseConnectorConfig;
 import io.debezium.relational.history.SchemaHistory;
 import io.debezium.util.Collect;
@@ -564,5 +566,20 @@ public class ConfigurationTest {
 
         // XStream field should not be validated when LogMiner is selected
         assertThat(validationResult.get("xstream.server.name").errorMessages()).isEmpty();
+    }
+
+    @Test
+    @FixFor("DBZ-9619")
+    public void shouldIncludeInternalDatabasePropertiesInJdbcConfiguration() {
+        final var connectorConfig = new TestRelationalDatabaseConfig(
+                Configuration.create()
+                        .with(TOPIC_PREFIX, "test-prefix")
+                        .with(INTERNAL_DATABASE_CONFIG_PREFIX + "snapshot.scan.all.columns.force", "true")
+                        .build(),
+                null, null, 1);
+
+        assertThat(connectorConfig.getJdbcConfig().getBoolean(
+                RelationalDatabaseConnectorConfig.SNAPSHOT_FULL_COLUMN_SCAN_FORCE)).isTrue();
+        assertThat(connectorConfig.isFullColumnScanRequired()).isTrue();
     }
 }

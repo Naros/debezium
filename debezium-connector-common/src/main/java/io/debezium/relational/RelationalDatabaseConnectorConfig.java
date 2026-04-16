@@ -585,7 +585,11 @@ public abstract class RelationalDatabaseConnectorConfig extends CommonConnectorC
         this.tableIdMapper = tableIdMapper;
 
         this.jdbcConfig = JdbcConfiguration.adapt(
-                config.subset(ConfigurationNames.DATABASE_CONFIG_PREFIX, true).merge(config.subset(DRIVER_CONFIG_PREFIX, true)));
+                config.subset(ConfigurationNames.DATABASE_CONFIG_PREFIX, true)
+                        .merge(config.subset(DRIVER_CONFIG_PREFIX, true))
+                        .merge(config.subset(ConfigurationNames.INTERNAL_DATABASE_CONFIG_PREFIX, true)
+                                .map(key -> ConfigurationNames.INTERNAL_PREFIX + key))
+                        .merge(config.subset(ConfigurationNames.INTERNAL_DRIVER_CONFIG_PREFIX, true)));
 
         if (systemTablesFilter != null && tableIdMapper != null) {
             this.tableFilters = new RelationalTableFilters(config, systemTablesFilter, tableIdMapper, useCatalogBeforeSchema);
@@ -684,7 +688,7 @@ public abstract class RelationalDatabaseConnectorConfig extends CommonConnectorC
     }
 
     public Boolean isFullColumnScanRequired() {
-        return getConfig().getBoolean(SNAPSHOT_FULL_COLUMN_SCAN_FORCE);
+        return jdbcConfig.getBoolean(SNAPSHOT_FULL_COLUMN_SCAN_FORCE);
     }
 
     public SnapshotTablesRowCountOrder snapshotOrderByRowCount() {

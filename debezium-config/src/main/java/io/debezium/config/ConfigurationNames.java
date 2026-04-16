@@ -8,8 +8,11 @@ package io.debezium.config;
 public interface ConfigurationNames {
 
     String TOPIC_PREFIX_PROPERTY_NAME = "topic.prefix";
+    String INTERNAL_PREFIX = "internal.";
     String DATABASE_CONFIG_PREFIX = "database.";
     String DRIVER_CONFIG_PREFIX = "driver.";
+    String INTERNAL_DATABASE_CONFIG_PREFIX = INTERNAL_PREFIX + DATABASE_CONFIG_PREFIX;
+    String INTERNAL_DRIVER_CONFIG_PREFIX = INTERNAL_PREFIX + DRIVER_CONFIG_PREFIX;
     String DATABASE_HOSTNAME_PROPERTY_NAME = "hostname";
     String DATABASE_PORT_PROPERTY_NAME = "port";
     String MONGODB_CONNECTION_STRING_PROPERTY_NAME = "mongodb.connection.string";
