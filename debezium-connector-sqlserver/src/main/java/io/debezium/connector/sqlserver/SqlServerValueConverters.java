@@ -139,7 +139,7 @@ public class SqlServerValueConverters extends JdbcValueConverters {
     }
 
     @Override
-    protected Object convertBinary(Column column, Field fieldDefn, Object data, BinaryHandlingMode mode) {
+    protected Object convertBinary(Column column, Field fieldDefn, Object data, CommonConnectorConfig.BinaryHandlingMode mode) {
         if (data == UNAVAILABLE_VALUE) {
             data = unavailableValuePlaceholderBinary;
         }
