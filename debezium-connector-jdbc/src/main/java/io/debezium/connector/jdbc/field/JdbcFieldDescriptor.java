@@ -22,18 +22,12 @@ import io.debezium.sink.valuebinding.ValueBindDescriptor;
 @Immutable
 public class JdbcFieldDescriptor extends FieldDescriptor {
 
-    // Lazily prepared
-    private String queryBinding;
-
     public JdbcFieldDescriptor(FieldDescriptor fieldDescriptor, boolean isKey) {
         super(fieldDescriptor.getSchema(), fieldDescriptor.getName(), isKey);
     }
 
     public String getQueryBinding(ColumnDescriptor column, Object value, JdbcType jdbcType) {
-        if (queryBinding == null) {
-            queryBinding = jdbcType.getQueryBinding(column, schema, value);
-        }
-        return queryBinding;
+        return jdbcType.getQueryBinding(column, schema, value);
     }
 
     public List<ValueBindDescriptor> bind(int startIndex, Object value, JdbcType jdbcType) {
