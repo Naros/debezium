@@ -68,6 +68,7 @@ import io.debezium.config.EnumeratedValue;
 import io.debezium.config.Field;
 import io.debezium.connector.postgresql.PostgresConnectorConfig.LogicalDecoder;
 import io.debezium.connector.postgresql.PostgresConnectorConfig.SnapshotMode;
+import io.debezium.connector.postgresql.PostgresStreamingChangeEventSource;
 import io.debezium.connector.postgresql.connection.AbstractMessageDecoder;
 import io.debezium.connector.postgresql.connection.Lsn;
 import io.debezium.connector.postgresql.connection.PostgresConnection;
@@ -4379,5 +4380,55 @@ public class PostgresConnectorIT extends AbstractAsyncEngineConnectorTest {
         assertThat(matched.size()).isEqualTo(1);
 
         stopConnector();
+    }
+
+    @Test
+    @FixFor("DBZ-8714")
+    @SkipWhenDatabaseVersion(check = LESS_THAN, major = 11, reason = "pg_replication_slot_advance needed to manually advance slot ahead of offset")
+    public void shouldLogWarnWhenSlotFlushedLsnIsAheadOfOffset() throws Exception {
+        TestHelper.execute(SETUP_TABLES_STMT);
+
+        // Start connector with initial snapshot; keep the slot so the stored offset is retained on stop
+        Configuration.Builder configBuilder = TestHelper.defaultConfig()
+                .with(PostgresConnectorConfig.SNAPSHOT_MODE, SnapshotMode.INITIAL.name())
+                .with(PostgresConnectorConfig.DROP_SLOT_ON_STOP, Boolean.FALSE);
+
+        start(PostgresConnector.class, configBuilder.build());
+        assertConnectorIsRunning();
+        waitForSnapshotToBeCompleted();
+
+        // Consume the two snapshot records (one from s1.a and one from s2.a)
+        consumeRecordsByTopic(2);
+
+        // Stop the connector; the offset is now persisted at the snapshot LSN
+        stopConnector();
+        assertConnectorNotRunning();
+
+        // Manually advance the replication slot past the stored offset LSN so that
+        // slotLastFlushedLsn > offsetLsn when the connector restarts
+        try (PostgresConnection connection = TestHelper.create()) {
+            connection.execute(String.format(
+                    "SELECT pg_replication_slot_advance('%s', pg_current_wal_lsn())",
+                    ReplicationConnection.Builder.DEFAULT_SLOT_NAME));
+        }
+
+        // Create the log interceptor before restarting so no messages are missed
+        final LogInterceptor logInterceptor = new LogInterceptor(PostgresStreamingChangeEventSource.class);
+
+        // Restart the connector with trust_slot so streaming can proceed despite the mismatch
+        configBuilder = TestHelper.defaultConfig()
+                .with(PostgresConnectorConfig.SNAPSHOT_MODE, SnapshotMode.NO_DATA.name())
+                .with(PostgresConnectorConfig.DROP_SLOT_ON_STOP, Boolean.TRUE)
+                .with(PostgresConnectorConfig.OFFSET_SLOT_MISMATCH_STRATEGY, "trust_slot");
+
+        start(PostgresConnector.class, configBuilder.build());
+
+        // Verify that a WARN message is logged when the slot's flushed LSN is ahead of the stored offset
+        Awaitility.await()
+                .alias("Wait for slot-ahead-of-offset warning")
+                .atMost(TestHelper.waitTimeForRecords() * 5L, TimeUnit.SECONDS)
+                .until(() -> logInterceptor.containsWarnMessage("Replication slot's latest flushed LSN"));
+
+        assertThat(logInterceptor.containsWarnMessage("Replication slot's latest flushed LSN")).isTrue();
     }
 }
