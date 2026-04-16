@@ -268,6 +268,52 @@ public class JdbcSinkInsertModeIT extends AbstractJdbcSinkInsertModeTest {
     }
 
     @ParameterizedTest
+    @ArgumentsSource(SinkRecordFactoryArgumentsProvider.class)
+    @FixFor("DBZ-1658")
+    public void testUpsertModeWithInfinityTimestampAsSecondRecordInBatch(SinkRecordFactory factory) throws SQLException {
+
+        final Map<String, String> properties = getDefaultSinkConfig();
+        properties.put(JdbcSinkConnectorConfig.SCHEMA_EVOLUTION, SchemaEvolutionMode.BASIC.getValue());
+        properties.put(JdbcSinkConnectorConfig.PRIMARY_KEY_MODE, PrimaryKeyMode.RECORD_KEY.getValue());
+        properties.put(JdbcSinkConnectorConfig.INSERT_MODE, InsertMode.UPSERT.getValue());
+        properties.put(JdbcSinkConnectorConfig.POSTGRES_UNNEST_INSERT, "false");
+
+        startSinkConnector(properties);
+        assertSinkConnectorIsRunning();
+
+        final String tableName = randomTableName();
+        final String topicName = topicName("server1", "schema", tableName);
+
+        final Schema zonedTimestampSchema = SchemaBuilder.string()
+                .name("io.debezium.time.ZonedTimestamp")
+                .optional()
+                .build();
+
+        final JdbcSinkConnectorConfig config = new JdbcSinkConnectorConfig(properties);
+
+        // First record uses a normal timestamp value; this determines the SQL template
+        // used for the entire batch
+        final JdbcKafkaSinkRecord normalRecord = factory.createRecordWithSchemaValue(topicName, (byte) 1,
+                List.of("ts"),
+                List.of(zonedTimestampSchema),
+                Arrays.asList(new Object[]{ "2024-01-15T10:30:00.000Z" }), config);
+
+        // Second record uses -infinity; previously this failed because the SQL template
+        // was built from the first record without the required CAST expression
+        final JdbcKafkaSinkRecord negativeInfinityRecord = factory.createRecordWithSchemaValue(topicName, (byte) 2,
+                List.of("ts"),
+                List.of(zonedTimestampSchema),
+                Arrays.asList(new Object[]{ "-infinity" }), config);
+
+        consume(List.of(normalRecord, negativeInfinityRecord));
+
+        final TableAssert tableAssert = TestHelper.assertTable(assertDbConnection(), destinationTableName(normalRecord));
+        tableAssert.exists().hasNumberOfRows(2).hasNumberOfColumns(2);
+
+        getSink().assertColumnType(tableAssert, "id", ValueType.NUMBER, (byte) 1, (byte) 2);
+    }
+
+    @ParameterizedTest
     @ArgumentsSource(PostgresInsertModeArgumentsProvider.class)
     @FixFor("DBZ-7920")
     public void testInsertModeInsertInfinityValues(SinkRecordFactory factory, PostgresInsertMode insertMode) throws SQLException {

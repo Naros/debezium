@@ -27,12 +27,12 @@ public class ZonedTimestampType extends DebeziumZonedTimestampType {
 
     @Override
     public String getQueryBinding(ColumnDescriptor column, Schema schema, Object value) {
-
-        if (POSITIVE_INFINITY.equals(value) || NEGATIVE_INFINITY.equals(value)) {
-            return "cast(? as timestamptz)";
-        }
-
-        return super.getQueryBinding(column, schema, value);
+        // Always use a cast expression so that infinity string values can be bound correctly
+        // regardless of their position in a batch. When a batch contains a mix of normal
+        // timestamps and infinity values, the SQL template is built from the first record
+        // and reused for all records. Infinity values must be sent as VARCHAR strings
+        // (e.g. "-infinity") and require an explicit CAST to be accepted by PostgreSQL.
+        return "cast(? as timestamptz)";
     }
 
     @Override
