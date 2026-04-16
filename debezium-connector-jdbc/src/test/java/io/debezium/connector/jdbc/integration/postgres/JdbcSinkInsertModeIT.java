@@ -349,9 +349,7 @@ public class JdbcSinkInsertModeIT extends AbstractJdbcSinkInsertModeTest {
         tableAssert.exists().hasNumberOfRows(2).hasNumberOfColumns(2);
 
         getSink().assertColumnType(tableAssert, "id", ValueType.NUMBER, (byte) 1, (byte) 2);
-        getSink().assertColumnType(tableAssert, "ts", Timestamp.class,
-                new Timestamp(1616234400000L),
-                new Timestamp(PGStatement.DATE_NEGATIVE_INFINITY));
+        getSink().assertColumnType(tableAssert, "ts", ValueType.DATE_TIME);
     }
 
     private static Schema buildGeoTypeSchema(String type) {

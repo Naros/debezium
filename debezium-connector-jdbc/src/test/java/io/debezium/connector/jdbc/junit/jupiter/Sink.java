@@ -89,7 +89,7 @@ public class Sink extends JdbcConnectionProvider {
         return table.column(columnName).isOfType(type, lenient);
     }
 
-    public AbstractColumnAssert assertColumnType(TableAssert table, String columnName, Class classType, Object... values) {
+    public AbstractColumnAssert assertColumnType(TableAssert table, String columnName, Class classType, Object values) {
         return table.column(columnName).isOfClass(classType, false).hasValues(values);
     }
 
