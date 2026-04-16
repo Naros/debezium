@@ -688,7 +688,7 @@ public abstract class RelationalDatabaseConnectorConfig extends CommonConnectorC
     }
 
     public Boolean isFullColumnScanRequired() {
-        return jdbcConfig.getBoolean(SNAPSHOT_FULL_COLUMN_SCAN_FORCE);
+        return getConfig().getBoolean(SNAPSHOT_FULL_COLUMN_SCAN_FORCE);
     }
 
     public SnapshotTablesRowCountOrder snapshotOrderByRowCount() {

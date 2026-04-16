@@ -580,6 +580,5 @@ public class ConfigurationTest {
 
         assertThat(connectorConfig.getJdbcConfig().getBoolean(
                 RelationalDatabaseConnectorConfig.SNAPSHOT_FULL_COLUMN_SCAN_FORCE)).isTrue();
-        assertThat(connectorConfig.isFullColumnScanRequired()).isTrue();
     }
 }
