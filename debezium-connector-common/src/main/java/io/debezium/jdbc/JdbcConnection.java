@@ -84,6 +84,7 @@ public class JdbcConnection implements AutoCloseable {
 
     private static final int WAIT_FOR_CLOSE_SECONDS = 10;
     private static final char STATEMENT_DELIMITER = ';';
+    private static final String SNAPSHOT_FULL_COLUMN_SCAN_FORCE_KEY = "snapshot.scan.all.columns.force";
 
     /**
      * The wildcard characters that must be escaped when constructing patterns for the JDBC
@@ -1227,7 +1228,7 @@ public class JdbcConnection implements AutoCloseable {
 
         Map<TableId, List<Column>> columnsByTable = new HashMap<>();
 
-        if (totalTables == tableIds.size() || config.getBoolean(RelationalDatabaseConnectorConfig.SNAPSHOT_FULL_COLUMN_SCAN_FORCE)) {
+        if (totalTables == tableIds.size() || config.getBoolean(SNAPSHOT_FULL_COLUMN_SCAN_FORCE_KEY, false)) {
             columnsByTable = getColumnsDetails(catalogName, schemaName, null, tableFilter, columnFilter, metadata, viewIds);
             if (columnsByTable.isEmpty()) {
                 for (TableId emptyTableId : tableIds) {
