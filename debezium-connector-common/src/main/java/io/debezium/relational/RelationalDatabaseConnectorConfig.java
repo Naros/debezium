@@ -505,7 +505,7 @@ public abstract class RelationalDatabaseConnectorConfig extends CommonConnectorC
             .withDescription("A comma-separated list of regular expressions matching the database-specific data type names that "
                     + "adds the data type's original type and original length as parameters to the corresponding field schemas in the emitted change records.");
 
-    public static final Field SNAPSHOT_FULL_COLUMN_SCAN_FORCE = Field.createInternal("snapshot.scan.all.columns.force")
+    public static final Field SNAPSHOT_FULL_COLUMN_SCAN_FORCE = Field.createInternal("database.snapshot.scan.all.columns.force")
             .withDisplayName("Snapshot force scan all columns of all tables")
             .withType(Type.BOOLEAN)
             .withGroup(Field.createGroupEntry(Field.Group.CONNECTOR_SNAPSHOT, 999))
@@ -514,6 +514,7 @@ public abstract class RelationalDatabaseConnectorConfig extends CommonConnectorC
             .withDescription("Restore pre 1.5 behaviour and scan all tables to discover columns."
                     + " If you are excluding one table then turning this on may improve performance."
                     + " If you are excluding a lot of tables the default behavior should work well.")
+            .withDeprecatedAliases("internal.snapshot.scan.all.columns.force")
             .withDefault(false);
 
     public static final Field UNAVAILABLE_VALUE_PLACEHOLDER = Field.create("unavailable.value.placeholder")
@@ -585,7 +586,10 @@ public abstract class RelationalDatabaseConnectorConfig extends CommonConnectorC
         this.tableIdMapper = tableIdMapper;
 
         this.jdbcConfig = JdbcConfiguration.adapt(
-                config.subset(ConfigurationNames.DATABASE_CONFIG_PREFIX, true).merge(config.subset(DRIVER_CONFIG_PREFIX, true)));
+                config.subset(ConfigurationNames.DATABASE_CONFIG_PREFIX, true)
+                        .merge(config.subset(DRIVER_CONFIG_PREFIX, true))
+                        .merge(config.subset(ConfigurationNames.INTERNAL_DATABASE_CONFIG_PREFIX, true))
+                        .merge(config.subset(ConfigurationNames.INTERNAL_DRIVER_CONFIG_PREFIX, true)));
 
         if (systemTablesFilter != null && tableIdMapper != null) {
             this.tableFilters = new RelationalTableFilters(config, systemTablesFilter, tableIdMapper, useCatalogBeforeSchema);

@@ -425,6 +425,29 @@ public class ConfigurationTest {
     }
 
     @Test
+    @FixFor("DBZ-9619")
+    public void testConfigurationMergeWithInternalPrefixes() {
+        config = Configuration.create()
+                .with("database.hostname", "server1")
+                .with("driver.user", "mysqluser")
+                .with("internal.database.snapshot.scan.all.columns.force", "true")
+                .with("internal.driver.custom.property", "value1")
+                .build();
+
+        final var dbConfig = config
+                .subset(DATABASE_CONFIG_PREFIX, true)
+                .merge(config.subset(DRIVER_CONFIG_PREFIX, true))
+                .merge(config.subset(ConfigurationNames.INTERNAL_DATABASE_CONFIG_PREFIX, true))
+                .merge(config.subset(ConfigurationNames.INTERNAL_DRIVER_CONFIG_PREFIX, true));
+
+        assertThat(dbConfig.keys().size()).isEqualTo(4);
+        assertThat(dbConfig.getString("hostname")).isEqualTo("server1");
+        assertThat(dbConfig.getString("user")).isEqualTo("mysqluser");
+        assertThat(dbConfig.getString("snapshot.scan.all.columns.force")).isEqualTo("true");
+        assertThat(dbConfig.getString("custom.property")).isEqualTo("value1");
+    }
+
+    @Test
     @FixFor("DBZ-6864")
     public void defaultDdlFilterShouldFilterOutRdsSetStatements() {
         String defaultDdlFilter = Configuration.create().build().getString(SchemaHistory.DDL_FILTER);
