@@ -514,6 +514,7 @@ public abstract class RelationalDatabaseConnectorConfig extends CommonConnectorC
             .withDescription("Restore pre 1.5 behaviour and scan all tables to discover columns."
                     + " If you are excluding one table then turning this on may improve performance."
                     + " If you are excluding a lot of tables the default behavior should work well.")
+            .withDeprecatedAliases("internal.snapshot.scan.all.columns.force")
             .withDefault(false);
 
     public static final Field UNAVAILABLE_VALUE_PLACEHOLDER = Field.create("unavailable.value.placeholder")
