@@ -309,6 +309,53 @@ public class JdbcSinkInsertModeIT extends AbstractJdbcSinkInsertModeTest {
 
     }
 
+    @ParameterizedTest
+    @ArgumentsSource(PostgresInsertModeArgumentsProvider.class)
+    @FixFor("DBZ-1658")
+    public void testInsertModeInsertInfinityValuesNotFirstInBatch(SinkRecordFactory factory, PostgresInsertMode insertMode) throws SQLException {
+
+        final Map<String, String> properties = getDefaultSinkConfig();
+        properties.put(JdbcSinkConnectorConfig.SCHEMA_EVOLUTION, SchemaEvolutionMode.BASIC.getValue());
+        properties.put(JdbcSinkConnectorConfig.PRIMARY_KEY_MODE, PrimaryKeyMode.RECORD_VALUE.getValue());
+        properties.put(JdbcSinkConnectorConfig.PRIMARY_KEY_FIELDS, "id");
+        properties.put(JdbcSinkConnectorConfig.INSERT_MODE, InsertMode.UPSERT.getValue());
+        properties.put(JdbcSinkConnectorConfig.POSTGRES_UNNEST_INSERT, String.valueOf(insertMode.isUnnestEnabled()));
+
+        startSinkConnector(properties);
+        assertSinkConnectorIsRunning();
+
+        final String tableName = randomTableName();
+        final String topicName = topicName("server1", "schema", tableName);
+
+        Schema zonedTimestampSchema = SchemaBuilder.string()
+                .name("io.debezium.time.ZonedTimestamp")
+                .build();
+
+        JdbcSinkConnectorConfig config = new JdbcSinkConnectorConfig(properties);
+
+        final JdbcKafkaSinkRecord normalRecord = factory.createRecordWithSchemaValue(topicName, (byte) 1,
+                List.of("timestamptz_col"),
+                List.of(zonedTimestampSchema),
+                Arrays.asList(new Object[]{ "2025-01-01T12:00:00Z" }), config);
+
+        final JdbcKafkaSinkRecord negativeInfinityRecord = factory.createRecordWithSchemaValue(topicName, (byte) 2,
+                List.of("timestamptz_col"),
+                List.of(zonedTimestampSchema),
+                Arrays.asList(new Object[]{ "-infinity" }), config);
+
+        final JdbcKafkaSinkRecord positiveInfinityRecord = factory.createRecordWithSchemaValue(topicName, (byte) 3,
+                List.of("timestamptz_col"),
+                List.of(zonedTimestampSchema),
+                Arrays.asList(new Object[]{ "infinity" }), config);
+
+        consume(List.of(normalRecord, negativeInfinityRecord, positiveInfinityRecord));
+
+        final TableAssert tableAssert = TestHelper.assertTable(assertDbConnection(), destinationTableName(normalRecord));
+        tableAssert.exists().hasNumberOfRows(3).hasNumberOfColumns(2);
+
+        getSink().assertColumnType(tableAssert, "id", ValueType.NUMBER, (byte) 1, (byte) 2, (byte) 3);
+    }
+
     private static Schema buildGeoTypeSchema(String type) {
 
         SchemaBuilder schemaBuilder = SchemaBuilder.struct()
