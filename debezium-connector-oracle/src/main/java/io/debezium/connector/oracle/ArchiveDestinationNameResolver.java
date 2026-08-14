@@ -18,6 +18,8 @@ import io.debezium.util.Collect;
 /**
  * A resolver that takes a collection of configured archive destination names and determines
  * which destination name should be used by the connector.
+ * <p>
+ * Some random java change
  *
  * @author Chris Cranford
  */
