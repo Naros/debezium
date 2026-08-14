@@ -35,6 +35,7 @@ import io.debezium.connector.postgresql.connection.ReplicationMessage;
 import io.debezium.connector.postgresql.connection.ReplicationMessage.Operation;
 import io.debezium.connector.postgresql.connection.ReplicationStream;
 import io.debezium.connector.postgresql.connection.WalPositionLocator;
+import io.debezium.connector.postgresql.spi.SlotState;
 import io.debezium.heartbeat.Heartbeat;
 import io.debezium.pipeline.ErrorHandler;
 import io.debezium.pipeline.monitor.OffsetActivityMonitor;
@@ -67,6 +68,8 @@ public class PostgresStreamingChangeEventSource implements StreamingChangeEventS
     // We thus try to read the message multiple times before we make poll pause
     private static final int THROTTLE_NO_MESSAGE_BEFORE_PAUSE = 5;
 
+    private static final long WAL_SEARCH_WARN_INTERVAL_MS = 10_000L;
+
     private final PostgresConnection connection;
     private final PostgresEventDispatcher<TableId> dispatcher;
     private final ErrorHandler errorHandler;
@@ -77,6 +80,7 @@ public class PostgresStreamingChangeEventSource implements StreamingChangeEventS
     private final ReplicationConnection replicationConnection;
     private final AtomicReference<ReplicationStream> replicationStream = new AtomicReference<>();
     private final SnapshotterService snapshotterService;
+    private final SlotState startingSlotInfo;
     private final DelayStrategy pauseNoMessage;
     private final ElapsedTimeStrategy connectionProbeTimer;
     private final ExecutorService lsnFlushExecutor;
@@ -109,7 +113,8 @@ public class PostgresStreamingChangeEventSource implements StreamingChangeEventS
 
     public PostgresStreamingChangeEventSource(PostgresConnectorConfig connectorConfig, SnapshotterService snapshotterService,
                                               PostgresConnection connection, PostgresEventDispatcher<TableId> dispatcher, ErrorHandler errorHandler, Clock clock,
-                                              PostgresSchema schema, PostgresTaskContext taskContext, ReplicationConnection replicationConnection) {
+                                              PostgresSchema schema, PostgresTaskContext taskContext, ReplicationConnection replicationConnection,
+                                              SlotState startingSlotInfo) {
         this.connectorConfig = connectorConfig;
         this.connection = connection;
         this.dispatcher = dispatcher;
@@ -120,6 +125,7 @@ public class PostgresStreamingChangeEventSource implements StreamingChangeEventS
         this.taskContext = taskContext;
         this.snapshotterService = snapshotterService;
         this.replicationConnection = replicationConnection;
+        this.startingSlotInfo = startingSlotInfo;
         this.connectionProbeTimer = ElapsedTimeStrategy.constant(Clock.system(), connectorConfig.statusUpdateInterval());
         this.lsnFlushExecutor = Threads.newSingleThreadExecutor(PostgresStreamingChangeEventSource.class, connectorConfig.getLogicalName(), "lsn-flush");
         if (connectorConfig.xminFetchInterval().toMillis() > 0) {
@@ -200,6 +206,7 @@ public class PostgresStreamingChangeEventSource implements StreamingChangeEventS
             this.lastCompletelyProcessedLsn = replicationStream.get().startLsn();
 
             if (walPosition.searchingEnabled() && this.effectiveOffset.hasCompletelyProcessedPosition()) {
+                checkSlotLsnAheadOfOffset(this.effectiveOffset);
                 searchWalPosition(context, partition, this.effectiveOffset, stream, walPosition);
                 try {
                     if (!isInPreSnapshotCatchUpStreaming(this.effectiveOffset)) {
@@ -434,6 +441,8 @@ public class PostgresStreamingChangeEventSource implements StreamingChangeEventS
         AtomicReference<Lsn> resumeLsn = new AtomicReference<>();
         int noMessageIterations = 0;
 
+        final ElapsedTimeStrategy walSearchWarningTimer = ElapsedTimeStrategy.constant(Clock.system(), WAL_SEARCH_WARN_INTERVAL_MS);
+
         LOGGER.info("Searching for WAL resume position");
         while (context.isRunning() && resumeLsn.get() == null) {
 
@@ -454,9 +463,24 @@ public class PostgresStreamingChangeEventSource implements StreamingChangeEventS
                 }
             }
 
+            if (walSearchWarningTimer.hasElapsed()) {
+                LOGGER.warn("WAL position search has not yet found a resume position; still searching with {}", walPosition);
+            }
+
             probeConnectionIfNeeded();
         }
         LOGGER.info("WAL resume position '{}' discovered", resumeLsn.get());
+    }
+
+    private void checkSlotLsnAheadOfOffset(PostgresOffsetContext offsetContext) {
+        if (startingSlotInfo != null) {
+            final Lsn slotFlushedLsn = startingSlotInfo.slotLastFlushedLsn();
+            final Lsn offsetLsn = offsetContext.lastCompletelyProcessedLsn();
+            if (slotFlushedLsn != null && offsetLsn != null && slotFlushedLsn.compareTo(offsetLsn) > 0) {
+                LOGGER.warn("Replication slot confirmed_flushed_lsn '{}' is ahead of the offset's last processed LSN '{}'; "
+                        + "this may indicate that the WAL position search will run for a long time or indefinitely", slotFlushedLsn, offsetLsn);
+            }
+        }
     }
 
     private void probeConnectionIfNeeded() throws SQLException {
