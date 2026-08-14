@@ -55,8 +55,8 @@ jobs:
         uses: actions/cache@v6
         with:
           path: ~/.m2/repository
-          key: maven-debezium-test-push-build-${{ hashFiles('core/**/pom.xml') }}
-          restore-keys: maven-debezium-test-push-build-${{ hashFiles('core/**/pom.xml') }}
+          key: maven-cache-${{ github.ref_name }}-${{ hashFiles('core/**/pom.xml') }}
+          restore-keys: maven-cache-${{ github.ref_name }}-
 
       # This step is responsible for pulling down artifacts
       # Unfortunately due to the nature of how some of the maven workflows work, the only reliable way
@@ -105,7 +105,7 @@ jobs:
 
       - uses: ./.github/actions/checkstyle-format
         with:
-          maven-cache-key: maven-debezium-test-push-build-${{ hashFiles('**/pom.xml') }}
+          maven-cache-key: maven-cache-${{ github.ref_name }}-${{ hashFiles('**/pom.xml') }}
 
   # Approx 2m
   build_core:
@@ -118,7 +118,7 @@ jobs:
 
       - uses: ./.github/actions/build-debezium-core
         with:
-          maven-cache-key: maven-debezium-test-push-build-${{ hashFiles('**/pom.xml') }}
+          maven-cache-key: maven-cache-${{ github.ref_name }}-${{ hashFiles('**/pom.xml') }}
           only-build: 'false'
 
   # Approx 40m each
@@ -127,7 +127,7 @@ jobs:
     needs: [ check_style, build_core ]
     uses: ./.github/workflows/connector-mongodb-workflow.yml
     with:
-      maven-cache-key: maven-debezium-test-push-build
+      maven-cache-key: maven-cache-${{ github.ref_name }}
       max-parallel: 1
 
   # Approx 40m each
@@ -136,7 +136,7 @@ jobs:
     needs: [ check_style, build_core ]
     uses: ./.github/workflows/connector-mysql-workflow.yml
     with:
-      maven-cache-key: maven-debezium-test-push-build
+      maven-cache-key: maven-cache-${{ github.ref_name }}
       max-parallel: 2
 
   # Approx 40m each
@@ -145,7 +145,7 @@ jobs:
     needs: [ check_style, build_core ]
     uses: ./.github/workflows/connector-mariadb-workflow.yml
     with:
-      maven-cache-key: maven-debezium-test-push-build
+      maven-cache-key: maven-cache-${{ github.ref_name }}
       max-parallel: 1
 
   # Approx 40m each
@@ -154,7 +154,7 @@ jobs:
     needs: [ check_style, build_core ]
     uses: ./.github/workflows/connector-postgresql-workflow.yml
     with:
-      maven-cache-key: maven-debezium-test-push-build
+      maven-cache-key: maven-cache-${{ github.ref_name }}
       max-parallel: 1
 
   # Approx 1h 45m
@@ -168,7 +168,7 @@ jobs:
 
       - uses: ./.github/actions/build-debezium-sqlserver
         with:
-          maven-cache-key: maven-debezium-test-push-build-${{ hashFiles('**/pom.xml') }}
+          maven-cache-key: maven-cache-${{ github.ref_name }}-${{ hashFiles('**/pom.xml') }}
 
   # Approx 6m
   build_oracle:
@@ -176,7 +176,7 @@ jobs:
     needs: [ check_style, build_core ]
     uses: ./.github/workflows/connector-oracle-workflow.yml
     with:
-      maven-cache-key: maven-debezium-test-push-build
+      maven-cache-key: maven-cache-${{ github.ref_name }}
       max-parallel: 1
 
   # Approx 2m
@@ -190,7 +190,7 @@ jobs:
 
       - uses: ./.github/actions/build-debezium-schema-generator
         with:
-          maven-cache-key: maven-debezium-test-push-build-${{ hashFiles('**/pom.xml') }}
+          maven-cache-key: maven-cache-${{ github.ref_name }}-${{ hashFiles('**/pom.xml') }}
 
   # Approx 5m
   build_debezium_testing:
@@ -204,7 +204,7 @@ jobs:
 
       - uses: ./.github/actions/build-debezium-testing
         with:
-          maven-cache-key: maven-debezium-test-push-build-${{ hashFiles('**/pom.xml') }}
+          maven-cache-key: maven-cache-${{ github.ref_name }}-${{ hashFiles('**/pom.xml') }}
 
   # Approx 3m
   build_storage:
@@ -218,7 +218,7 @@ jobs:
 
       - uses: ./.github/actions/build-debezium-storage
         with:
-          maven-cache-key: maven-debezium-test-push-build-${{ hashFiles('**/pom.xml') }}
+          maven-cache-key: maven-cache-${{ github.ref_name }}-${{ hashFiles('**/pom.xml') }}
 
   # Approx 25m
   build_cassandra:
@@ -244,7 +244,7 @@ jobs:
       - uses: ./core/.github/actions/maven-cache
         with:
           # We specifically only use the hash of the pom files from the core repository
-          key: maven-debezium-test-push-build-${{ hashFiles('core/**/pom.xml') }}
+          key: maven-cache-${{ github.ref_name }}-${{ hashFiles('core/**/pom.xml') }}
 
       - uses: ./core/.github/actions/build-debezium-cassandra
         with:
@@ -274,7 +274,7 @@ jobs:
       - uses: ./core/.github/actions/maven-cache
         with:
           # We specifically only use the hash of the pom files from the core repository
-          key: maven-debezium-test-push-build-${{ hashFiles('core/**/pom.xml') }}
+          key: maven-cache-${{ github.ref_name }}-${{ hashFiles('core/**/pom.xml') }}
 
       - uses: ./core/.github/actions/build-debezium-db2
         with:
@@ -287,7 +287,7 @@ jobs:
     needs: [ check_style, build_core ]
     uses: ./.github/workflows/connector-informix-workflow.yml
     with:
-      maven-cache-key: maven-debezium-test-push-build
+      maven-cache-key: maven-cache-${{ github.ref_name }}
       max-parallel: 1
       checkout-ref: ${{ github.ref_name }}
 
@@ -313,7 +313,7 @@ jobs:
       - uses: ./core/.github/actions/maven-cache
         with:
           # We specifically only use the hash of the pom files from the core repository
-          key: maven-debezium-test-push-build-${{ hashFiles('core/**/pom.xml') }}
+          key: maven-cache-${{ github.ref_name }}-${{ hashFiles('core/**/pom.xml') }}
 
       - uses: ./core/.github/actions/build-debezium-ibmi
         with:
@@ -340,7 +340,7 @@ jobs:
       - uses: ./core/.github/actions/setup-java
       - uses: ./core/.github/actions/maven-cache
         with:
-          key: maven-debezium-test-push-build-${{ hashFiles('core/**/pom.xml') }}
+          key: maven-cache-${{ github.ref_name }}-${{ hashFiles('core/**/pom.xml') }}
 
       - uses: ./core/.github/actions/build-debezium-ingres
         with:
@@ -370,7 +370,7 @@ jobs:
       - uses: ./core/.github/actions/maven-cache
         with:
           # We specifically only use the hash of the pom files from the core repository
-          key: maven-debezium-test-push-build-${{ hashFiles('core/**/pom.xml') }}
+          key: maven-cache-${{ github.ref_name }}-${{ hashFiles('core/**/pom.xml') }}
 
       - uses: ./core/.github/actions/build-debezium-vitess
         with:
@@ -400,7 +400,7 @@ jobs:
       - uses: ./core/.github/actions/maven-cache
         with:
           # We specifically only use the hash of the pom files from the core repository
-          key: maven-debezium-test-push-build-${{ hashFiles('core/**/pom.xml') }}
+          key: maven-cache-${{ github.ref_name }}-${{ hashFiles('core/**/pom.xml') }}
 
       - uses: ./core/.github/actions/build-debezium-cockroachdb
         with:
@@ -431,7 +431,7 @@ jobs:
       - uses: ./core/.github/actions/maven-cache
         with:
           # We specifically only use the hash of the pom files from the core repository
-          key: maven-debezium-test-push-build-${{ hashFiles('core/**/pom.xml') }}
+          key: maven-cache-${{ github.ref_name }}-${{ hashFiles('core/**/pom.xml') }}
 
       - uses: ./core/.github/actions/build-debezium-spanner
         with:
@@ -445,7 +445,7 @@ jobs:
     uses: ./.github/workflows/connector-jdbc-workflow.yml
     if: always() && needs.check_style.result == 'success' && needs.build_core.result == 'success'
     with:
-      maven-cache-key: maven-debezium-test-push-build
+      maven-cache-key: maven-cache-${{ github.ref_name }}
 
   # Approx 26m
   build_debezium_server:
@@ -471,7 +471,7 @@ jobs:
       - uses: ./core/.github/actions/maven-cache
         with:
           # We specifically only use the hash of the pom files from the core repository
-          key: maven-debezium-test-push-build-${{ hashFiles('core/**/pom.xml') }}
+          key: maven-cache-${{ github.ref_name }}-${{ hashFiles('core/**/pom.xml') }}
 
       - uses: ./core/.github/actions/build-debezium-server
         with:
@@ -488,7 +488,7 @@ jobs:
 
       - uses: ./.github/actions/build-debezium-ai
         with:
-          maven-cache-key: maven-debezium-test-push-build-${{ hashFiles('**/pom.xml') }}
+          maven-cache-key: maven-cache-${{ github.ref_name }}-${{ hashFiles('**/pom.xml') }}
 
   build_openlineage:
     name: "Debezium OpenLineage module"
@@ -500,11 +500,11 @@ jobs:
 
       - uses: ./.github/actions/build-debezium-openlineage
         with:
-          maven-cache-key: maven-debezium-test-push-build-${{ hashFiles('**/pom.xml') }}
+          maven-cache-key: maven-cache-${{ github.ref_name }}-${{ hashFiles('**/pom.xml') }}
 
   build_platform_conductor:
     name: "Debezium Platform - conductor"
     needs: [ check_style, build_core ]
     uses: ./.github/workflows/platform-conductor-workflow.yml
     with:
-      maven-cache-key: maven-debezium-test-push-build
+      maven-cache-key: maven-cache-${{ github.ref_name }}

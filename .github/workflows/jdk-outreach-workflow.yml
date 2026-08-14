@@ -34,8 +34,8 @@ jobs:
         uses: actions/cache/restore@v6
         with:
           path: ~/.m2/repository
-          key: maven-debezium-test-push-build-${{ hashFiles('**/pom.xml') }}
-          restore-keys: maven-debezium-test-push-build-${{ hashFiles('**/pom.xml') }}
+          key: maven-cache-main-${{ hashFiles('**/pom.xml') }}
+          restore-keys: maven-cache-main-
       - name: Maven Build
         run: >
           ./mvnw clean install -B -pl debezium-bom,debezium-connector-sqlserver -am 
@@ -68,8 +68,8 @@ jobs:
         uses: actions/cache/restore@v6
         with:
           path: ~/.m2/repository
-          key: maven-debezium-test-push-build-${{ hashFiles('**/pom.xml') }}
-          restore-keys: maven-debezium-test-push-build-${{ hashFiles('**/pom.xml') }}
+          key: maven-cache-main-${{ hashFiles('**/pom.xml') }}
+          restore-keys: maven-cache-main-
       - name: Maven Build
         run: >
           ./mvnw clean install -B -pl debezium-bom,debezium-connector-mysql -am 
@@ -102,8 +102,8 @@ jobs:
         uses: actions/cache/restore@v6
         with:
           path: ~/.m2/repository
-          key: maven-debezium-test-push-build-${{ hashFiles('**/pom.xml') }}
-          restore-keys: maven-debezium-test-push-build-${{ hashFiles('**/pom.xml') }}
+          key: maven-cache-main-${{ hashFiles('**/pom.xml') }}
+          restore-keys: maven-cache-main-
       - name: Maven Build
         run: >
           ./mvnw clean install -B -pl debezium-bom,debezium-connector-postgres -am 
@@ -137,8 +137,8 @@ jobs:
         uses: actions/cache/restore@v6
         with:
           path: ~/.m2/repository
-          key: maven-debezium-test-push-build-${{ hashFiles('**/pom.xml') }}
-          restore-keys: maven-debezium-test-push-build-${{ hashFiles('**/pom.xml') }}
+          key: maven-cache-main-${{ hashFiles('**/pom.xml') }}
+          restore-keys: maven-cache-main-
       - name: Maven Build
         run: >
           ./mvnw clean install -B -pl debezium-bom,debezium-connector-mongodb -am 
@@ -172,8 +172,8 @@ jobs:
         uses: actions/cache/restore@v6
         with:
           path: ~/.m2/repository
-          key: maven-debezium-test-push-build-${{ hashFiles('**/pom.xml') }}
-          restore-keys: maven-debezium-test-push-build-${{ hashFiles('**/pom.xml') }}
+          key: maven-cache-main-${{ hashFiles('**/pom.xml') }}
+          restore-keys: maven-cache-main-
       # Intentionally does not use assembly profile.
       - name: Maven Build
         run: >
@@ -212,8 +212,8 @@ jobs:
         uses: actions/cache/restore@v6
         with:
           path: ~/.m2/repository
-          key: maven-debezium-test-push-build-${{ hashFiles('core/**/pom.xml') }}
-          restore-keys: maven-debezium-test-push-build-${{ hashFiles('core/**/pom.xml') }}
+          key: maven-cache-main-${{ hashFiles('core/**/pom.xml') }}
+          restore-keys: maven-cache-main-
       - name: Build Debezium Core
         run: >
           ./core/mvnw clean install -f core/pom.xml 
@@ -266,8 +266,8 @@ jobs:
         uses: actions/cache/restore@v6
         with:
           path: ~/.m2/repository
-          key: maven-debezium-test-push-build-${{ hashFiles('core/**/pom.xml') }}
-          restore-keys: maven-debezium-test-push-build-${{ hashFiles('core/**/pom.xml') }}
+          key: maven-cache-main-${{ hashFiles('core/**/pom.xml') }}
+          restore-keys: maven-cache-main-
       - name: Build Debezium Core
         run: >
           ./core/mvnw clean install -f core/pom.xml 
@@ -319,8 +319,8 @@ jobs:
         uses: actions/cache/restore@v6
         with:
           path: ~/.m2/repository
-          key: maven-debezium-test-push-build-${{ hashFiles('core/**/pom.xml') }}
-          restore-keys: maven-debezium-test-push-build-${{ hashFiles('core/**/pom.xml') }}
+          key: maven-cache-main-${{ hashFiles('core/**/pom.xml') }}
+          restore-keys: maven-cache-main-
       - name: Build Debezium Core
         run: >
           ./core/mvnw clean install -f core/pom.xml 
@@ -369,8 +369,8 @@ jobs:
         uses: actions/cache/restore@v6
         with:
           path: ~/.m2/repository
-          key: maven-debezium-test-push-build-${{ hashFiles('core/**/pom.xml') }}
-          restore-keys: maven-debezium-test-push-build-${{ hashFiles('core/**/pom.xml') }}
+          key: maven-cache-main-${{ hashFiles('core/**/pom.xml') }}
+          restore-keys: maven-cache-main-
       - name: Build Debezium Core
         run: >
           ./core/mvnw clean install -f core/pom.xml 
@@ -420,8 +420,8 @@ jobs:
         uses: actions/cache/restore@v6
         with:
           path: ~/.m2/repository
-          key: maven-debezium-test-push-build-${{ hashFiles('core/**/pom.xml') }}
-          restore-keys: maven-debezium-test-push-build-${{ hashFiles('core/**/pom.xml') }}
+          key: maven-cache-main-${{ hashFiles('core/**/pom.xml') }}
+          restore-keys: maven-cache-main-
       - name: Build Debezium Core
         run: >
           ./core/mvnw clean install -f core/pom.xml 
@@ -471,8 +471,8 @@ jobs:
         uses: actions/cache/restore@v6
         with:
           path: ~/.m2/repository
-          key: maven-debezium-test-push-build-${{ hashFiles('core/**/pom.xml') }}
-          restore-keys: maven-debezium-test-push-build-${{ hashFiles('core/**/pom.xml') }}
+          key: maven-cache-main-${{ hashFiles('core/**/pom.xml') }}
+          restore-keys: maven-cache-main-
       - name: Build Debezium Core
         run: >
           ./core/mvnw clean install -f core/pom.xml 
@@ -524,8 +524,8 @@ jobs:
         uses: actions/cache/restore@v6
         with:
           path: ~/.m2/repository
-          key: maven-debezium-test-push-build-${{ hashFiles('core/**/pom.xml') }}
-          restore-keys: maven-debezium-test-push-build-${{ hashFiles('core/**/pom.xml') }}
+          key: maven-cache-main-${{ hashFiles('core/**/pom.xml') }}
+          restore-keys: maven-cache-main-
       - name: Build Debezium Core
         run: >
           ./core/mvnw clean install -f core/pom.xml
@@ -578,8 +578,8 @@ jobs:
         uses: actions/cache/restore@v6
         with:
           path: ~/.m2/repository
-          key: maven-debezium-test-push-build-${{ hashFiles('core/**/pom.xml') }}
-          restore-keys: maven-debezium-test-push-build-${{ hashFiles('core/**/pom.xml') }}
+          key: maven-cache-main-${{ hashFiles('core/**/pom.xml') }}
+          restore-keys: maven-cache-main-
       - name: Build Debezium Core
         run: >
           ./core/mvnw clean install -f core/pom.xml
@@ -637,8 +637,8 @@ jobs:
         uses: actions/cache/restore@v6
         with:
           path: ~/.m2/repository
-          key: maven-debezium-test-push-build-${{ hashFiles('core/**/pom.xml') }}
-          restore-keys: maven-debezium-test-push-build-${{ hashFiles('core/**/pom.xml') }}
+          key: maven-cache-main-${{ hashFiles('core/**/pom.xml') }}
+          restore-keys: maven-cache-main-
       - name: Build (core)
         run: >
           ./core/mvnw clean install -f core/pom.xml
@@ -703,8 +703,8 @@ jobs:
         uses: actions/cache/restore@v6
         with:
           path: ~/.m2/repository
-          key: maven-debezium-test-push-build-${{ hashFiles('**/pom.xml') }}
-          restore-keys: maven-debezium-test-push-build-${{ hashFiles('**/pom.xml') }}
+          key: maven-cache-main-${{ hashFiles('**/pom.xml') }}
+          restore-keys: maven-cache-main-
       - name: Maven Build
         run: >
           ./mvnw clean install -B -pl debezium-bom,debezium-testing -am 
@@ -743,8 +743,8 @@ jobs:
         uses: actions/cache/restore@v6
         with:
           path: ~/.m2/repository
-          key: maven-debezium-test-push-build-${{ hashFiles('core/**/pom.xml') }}
-          restore-keys: maven-debezium-test-push-build-${{ hashFiles('core/**/pom.xml') }}
+          key: maven-cache-main-${{ hashFiles('core/**/pom.xml') }}
+          restore-keys: maven-cache-main-
       - name: Build Debezium Core
         run: >
           ./core/mvnw clean install -f core/pom.xml 
