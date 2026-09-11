@@ -7,6 +7,8 @@ package io.debezium.connector.binlog.jdbc;
 
 import static io.debezium.config.CommonConnectorConfig.DRIVER_CONFIG_PREFIX;
 import static io.debezium.config.ConfigurationNames.DATABASE_CONFIG_PREFIX;
+import static io.debezium.config.ConfigurationNames.INTERNAL_DATABASE_CONFIG_PREFIX;
+import static io.debezium.config.ConfigurationNames.INTERNAL_DRIVER_CONFIG_PREFIX;
 
 import java.time.Duration;
 import java.util.Objects;
@@ -31,7 +33,9 @@ public abstract class BinlogConnectionConfiguration implements ConnectionConfigu
         this.jdbcConfig = getJdbcConfiguration(getDatabaseConfiguration(configuration)
                 .build()
                 .subset(DATABASE_CONFIG_PREFIX, true)
-                .merge(configuration.subset(DRIVER_CONFIG_PREFIX, true)));
+                .merge(configuration.subset(DRIVER_CONFIG_PREFIX, true))
+                .merge(configuration.subset(INTERNAL_DATABASE_CONFIG_PREFIX, true))
+                .merge(configuration.subset(INTERNAL_DRIVER_CONFIG_PREFIX, true)));
         this.factory = createFactory(configuration);
     }
 
