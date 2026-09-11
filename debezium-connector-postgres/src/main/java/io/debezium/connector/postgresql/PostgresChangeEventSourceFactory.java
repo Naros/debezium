@@ -84,7 +84,8 @@ public class PostgresChangeEventSourceFactory implements ChangeEventSourceFactor
                 clock,
                 schema,
                 taskContext,
-                replicationConnection);
+                replicationConnection,
+                startingSlotInfo);
     }
 
     @Override
