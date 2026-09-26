@@ -109,6 +109,7 @@ public class NatsSchemaHistory extends AbstractSchemaHistory {
             LOGGER.info("Started NATS schema history");
         }
         catch (Exception e) {
+            stop();
             throw new SchemaHistoryException("Failed to start NATS schema history", e);
         }
     }
@@ -198,6 +199,9 @@ public class NatsSchemaHistory extends AbstractSchemaHistory {
     @Override
     public void stop() {
         super.stop();
+
+        jetStream = null;
+        jetStreamManagement = null;
         if (natsConnection != null) {
             natsConnection.close();
         }

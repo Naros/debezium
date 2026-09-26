@@ -244,9 +244,11 @@ public class NatsConnection {
             }).run();
         }
         catch (InterruptedException ie) {
+            close();
             throw ie;
         }
         catch (Exception e) {
+            close();
             // Surface a clear error if JS never became ready within the wait window
             throw new IOException("JetStream management API not ready after connection", e);
         }
