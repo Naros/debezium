@@ -142,7 +142,7 @@ public class NatsConnection {
             }
         }
         catch (Exception e) {
-            // will create below
+            LOGGER.debug("ObjectStore bucket '{}' lookup failed, falling through to create it", bucketName, e);
         }
 
         LOGGER.debug("ObjectStore bucket '{}' does not exist, creating it", bucketName);
@@ -180,13 +180,16 @@ public class NatsConnection {
         try {
             // Sanity check that the bucket exists and is responsive
             os.getStatus();
-            // Warm up with a tiny put/delete to avoid initial 503 No Responders races
-            warmUpObjectStore(os);
-            LOGGER.debug("Created ObjectStore bucket '{}' successfully", bucketName);
         }
         catch (Exception ex) {
-            LOGGER.warn("ObjectStore bucket '{}' creation sanity check failed", bucketName, ex);
+            // Returning the store anyway would surface this later as a confusing
+            // read or write error far from its cause; fail at creation time instead.
+            throw new IOException("ObjectStore bucket '%s' was created but is not responsive".formatted(bucketName), ex);
         }
+        // Warm up with a tiny put/delete to avoid initial 503 No Responders races;
+        // the warm-up is best effort and handles its own failures.
+        warmUpObjectStore(os);
+        LOGGER.debug("Created ObjectStore bucket '{}' successfully", bucketName);
         return os;
     }
 
@@ -327,7 +330,9 @@ public class NatsConnection {
                 try {
                     os.delete(key);
                 }
-                catch (Exception ignore) {
+                catch (Exception e) {
+                    // Harmless: readers skip the warm-up object by name, but leave a trace.
+                    LOGGER.debug("Failed to delete ObjectStore warm-up object '{}'", key, e);
                 }
             }).run();
         }
