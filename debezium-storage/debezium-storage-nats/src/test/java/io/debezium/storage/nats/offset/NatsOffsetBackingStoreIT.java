@@ -65,7 +65,6 @@ class NatsOffsetBackingStoreIT {
 
     @BeforeEach
     public void setUp() {
-        natsContainer.start();
         natsUrl = "nats://%s:%d".formatted(natsContainer.getHost(), natsContainer.getFirstMappedPort());
 
         offsetStore = new NatsOffsetBackingStore();
@@ -78,9 +77,6 @@ class NatsOffsetBackingStoreIT {
     public void tearDown() {
         if (offsetStore != null) {
             offsetStore.stop();
-        }
-        if (natsContainer != null) {
-            natsContainer.stop();
         }
     }
 
