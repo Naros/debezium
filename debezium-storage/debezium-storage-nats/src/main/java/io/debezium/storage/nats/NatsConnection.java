@@ -205,7 +205,7 @@ public class NatsConnection {
         if (!Strings.isNullOrBlank(config.getUser())) {
             optionsBuilder.userInfo(config.getUser(), config.getPassword());
         }
-        if (!Strings.isNullOrBlank(config.getToken())) {
+        if (config.getToken().length > 0) {
             optionsBuilder.token(config.getToken());
         }
         if (config.isTlsEnabled()) {
