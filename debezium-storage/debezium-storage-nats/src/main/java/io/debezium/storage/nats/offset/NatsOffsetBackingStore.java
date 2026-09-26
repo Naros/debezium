@@ -90,11 +90,6 @@ public class NatsOffsetBackingStore implements OffsetStore {
         this.config = new NatsOffsetBackingStoreConfig(config);
     }
 
-    @VisibleForTesting
-    public void configure(NatsOffsetBackingStoreConfig config) {
-        this.config = config;
-    }
-
     @Override
     public synchronized void start() {
         executor = Executors.newSingleThreadExecutor(r -> {
@@ -105,16 +100,6 @@ public class NatsOffsetBackingStore implements OffsetStore {
         LOGGER.info("Starting NatsOffsetBackingStore");
         connect();
         load();
-    }
-
-    @VisibleForTesting
-    synchronized void startNoLoad() {
-        executor = Executors.newSingleThreadExecutor(r -> {
-            Thread t = new Thread(r, "nats-offset-backing-store");
-            t.setDaemon(true);
-            return t;
-        });
-        connect();
     }
 
     @Override
@@ -196,13 +181,6 @@ public class NatsOffsetBackingStore implements OffsetStore {
         }
 
         LOGGER.info("Loaded {} offsets from NATS Object Store", data.size());
-    }
-
-    /**
-     * Save offsets to NATS Object Store
-     */
-    protected void save() {
-        save(data.keySet());
     }
 
     /**
