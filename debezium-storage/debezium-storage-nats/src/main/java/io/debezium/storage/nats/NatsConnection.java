@@ -72,13 +72,15 @@ public class NatsConnection {
         // Probe retries are derived from the reconnect wait: the more patient
         // the user is with connection reconnects, the more patient we are with
         // JetStream and object store readiness probes. The default reconnect
-        // wait of 2000ms yields 20 retries at 100ms intervals (~2s).
-        this.probeRetries = (int) Math.max(2000, config.getReconnectWait().toMillis()) / 100;
+        // wait of 2000ms yields 20 retries at 100ms intervals (~2s). The budget
+        // is computed in long arithmetic and clamped: an int overflow would go
+        // negative, which RetryingRunnable treats as infinite retries.
+        this.probeRetries = (int) Math.min(Integer.MAX_VALUE,
+                Math.max(2000L, config.getReconnectWait().toMillis()) / 100);
     }
 
     /**
-     * Retry budget used for the readiness probes, and available to callers
-     * that need to ride out a short transient failure.
+     * Retry budget used for the readiness probes.
      */
     public int getRetryBudget() {
         return probeRetries;
