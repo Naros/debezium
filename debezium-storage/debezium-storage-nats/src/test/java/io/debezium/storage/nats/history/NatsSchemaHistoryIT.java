@@ -71,7 +71,7 @@ class NatsSchemaHistoryIT {
 
     @BeforeEach
     public void setUp() {
-        natsUrl = "nats://localhost:" + natsContainer.getMappedPort(NATS_PORT);
+        natsUrl = "nats://%s:%d".formatted(natsContainer.getHost(), natsContainer.getFirstMappedPort());
         history = createHistory();
     }
 
