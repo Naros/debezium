@@ -56,6 +56,22 @@ public class LcrPosition implements Comparable<LcrPosition> {
         return rawPosition;
     }
 
+    /**
+     * Returns the position at the start of this position's {commit SCN, SCN} tuple.
+     * <p>
+     * A position ends with the LCR's sequence within its SCN, a further counter and the layout version
+     * byte. Zeroing the sequence and the counter yields a position that sorts before every LCR of the
+     * same commit SCN and SCN, including the trailing pieces of a chunked row LCR, while keeping both
+     * SCNs intact. Both position layouts end this way; any other layout is rejected by the constructor.
+     *
+     * @return the tuple start position, never {@code null}
+     */
+    public LcrPosition getTupleStartPosition() {
+        final byte[] tupleStart = Arrays.copyOf(rawPosition, rawPosition.length);
+        Arrays.fill(tupleStart, tupleStart.length - 9, tupleStart.length - 1, (byte) 0);
+        return Arrays.equals(tupleStart, rawPosition) ? this : new LcrPosition(tupleStart);
+    }
+
     public Scn getScn() {
         return scn;
     }
