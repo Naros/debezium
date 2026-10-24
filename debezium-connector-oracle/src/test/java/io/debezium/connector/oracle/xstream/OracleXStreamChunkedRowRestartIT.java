@@ -3,7 +3,7 @@
  *
  * Licensed under the Apache Software License version 2.0, available at http://www.apache.org/licenses/LICENSE-2.0
  */
-package io.debezium.connector.oracle;
+package io.debezium.connector.oracle.xstream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -21,6 +21,9 @@ import org.junit.jupiter.params.provider.ValueSource;
 
 import io.debezium.config.CommonConnectorConfig;
 import io.debezium.config.Configuration;
+import io.debezium.connector.oracle.OracleConnection;
+import io.debezium.connector.oracle.OracleConnector;
+import io.debezium.connector.oracle.OracleConnectorConfig;
 import io.debezium.connector.oracle.OracleConnectorConfig.SnapshotMode;
 import io.debezium.connector.oracle.junit.SkipWhenAdapterNameIsNot;
 import io.debezium.connector.oracle.util.TestHelper;
@@ -52,7 +55,7 @@ import io.debezium.util.Testing;
  *
  * @author Chris Cranford
  */
-@SkipWhenAdapterNameIsNot(value = SkipWhenAdapterNameIsNot.AdapterName.XSTREAM, reason = "Chunked row LCR replay is XStream-specific")
+@SkipWhenAdapterNameIsNot(SkipWhenAdapterNameIsNot.AdapterName.XSTREAM)
 public class OracleXStreamChunkedRowRestartIT extends AbstractAsyncEngineConnectorTest {
 
     private static final String TOPIC = TestHelper.SERVER_NAME + ".DEBEZIUM.DBZ2782";

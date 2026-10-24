@@ -53,6 +53,13 @@ class LcrEventHandler implements XStreamLCRCallbackHandler {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(LcrEventHandler.class);
 
+    private static final int ERR_INVALID_PROCESSED_LOW_WATERMARK = 26876;
+
+    // Command types of the trailing pieces of a chunked XMLType row. XStream has no public constants for them.
+    private static final String XML_WRITE = "XML WRITE";
+    private static final String XML_DOC_START = "XML DOC_START";
+    private static final String XML_DOC_END = "XML DOC_END";
+
     private final OracleConnectorConfig connectorConfig;
     private final ErrorHandler errorHandler;
     private final EventDispatcher<OraclePartition, TableId> dispatcher;
@@ -150,10 +157,23 @@ class LcrEventHandler implements XStreamLCRCallbackHandler {
             // the event can be safely dispatched. See processChunk below.
             currentRow = row;
         }
+        else if (isReplayedChunkedRowPiece(row)) {
+            // A standalone XML WRITE / XML DOC_START / XML DOC_END carries no column values; it is the trailing
+            // piece of a chunked XMLType row whose change was already emitted. XStream delivers these on their
+            // own only after an attach at a position inside the row's transaction, such as the one-time fallback
+            // attach that resumes an offset written before the tuple-start fix. In normal streaming they are
+            // folded into the row LCR's chunks, so there is nothing to emit here.
+            LOGGER.debug("Ignoring standalone chunked-row piece {} at position {}", row.getCommandType(), new LcrPosition(row.getPosition()));
+        }
         else {
             // Since the row has no chunk data, it can be dispatched immediately.
             dispatchDataChangeEvent(row, null);
         }
+    }
+
+    private static boolean isReplayedChunkedRowPiece(RowLCR row) {
+        final String command = row.getCommandType();
+        return XML_WRITE.equals(command) || XML_DOC_START.equals(command) || XML_DOC_END.equals(command);
     }
 
     private void dispatchDataChangeEvent(RowLCR lcr, Map<String, Object> chunkValues) throws InterruptedException {
@@ -344,11 +364,11 @@ class LcrEventHandler implements XStreamLCRCallbackHandler {
         if (eventSource.getXsOut() == null) {
             return;
         }
+        final PositionAndScn message = eventSource.receivePublishedPosition();
+        if (message == null) {
+            return;
+        }
         try {
-            final PositionAndScn message = eventSource.receivePublishedPosition();
-            if (message == null) {
-                return;
-            }
             LOGGER.debug("Recording offsets to Oracle");
             if (message.position != null) {
                 if (LOGGER.isDebugEnabled()) {
@@ -375,6 +395,14 @@ class LcrEventHandler implements XStreamLCRCallbackHandler {
             LOGGER.trace("Offsets recorded to Oracle");
         }
         catch (StreamsException e) {
+            if (e.getErrorCode() == ERR_INVALID_PROCESSED_LOW_WATERMARK) {
+                // The outbound server already holds a higher processed low position, which happens after
+                // upgrading from a version that published the full LCR position rather than its tuple start.
+                // The server's position is kept; XstreamStreamingChangeEventSource falls back to the stored
+                // position should it reject the tuple start on the next attach.
+                LOGGER.info("Outbound server kept its processed low position, {} is behind it and was not recorded", message.position);
+                return;
+            }
             throw new DebeziumException("Couldn't set processed low watermark", e);
         }
     }

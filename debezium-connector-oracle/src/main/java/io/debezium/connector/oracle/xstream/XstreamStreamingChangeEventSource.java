@@ -54,6 +54,7 @@ public class XstreamStreamingChangeEventSource implements StreamingChangeEventSo
     private static final Logger LOGGER = LoggerFactory.getLogger(XstreamStreamingChangeEventSource.class);
 
     private static final int DEFAULT_MAX_ATTACH_RETRIES = 10;
+    private static final int ERR_INVALID_LAST_POSITION = 21560;
 
     private final OracleConnectorConfig connectorConfig;
     private final OracleConnectionFactory connectionFactory;
@@ -114,7 +115,7 @@ public class XstreamStreamingChangeEventSource implements StreamingChangeEventSo
         LcrEventHandler eventHandler = new LcrEventHandler(connectorConfig, errorHandler, dispatcher, clock, schema,
                 partition, offsetContext, isTableCaseInsensitive(), this, streamingMetrics);
 
-        try (OracleConnection xsConnection = connectAndAttachWithRetries(context, getStartPosition(offsetContext))) {
+        try (OracleConnection xsConnection = connectAndAttachWithRetries(context, getStartPosition(offsetContext), getFallbackPosition(offsetContext))) {
             if (xsConnection == null) {
                 // The connector was stopped while attempting to attach to the outbound server.
                 LOGGER.info("Streaming stopped before the attach to outbound server {} completed.", xstreamOutboundServerName);
@@ -250,7 +251,21 @@ public class XstreamStreamingChangeEventSource implements StreamingChangeEventSo
         return convertScnToPosition(offsetContext.getScn());
     }
 
-    private OracleConnection connectAndAttachWithRetries(ChangeEventSourceContext context, byte[] startPosition) throws Exception {
+    /**
+     * Returns the stored position itself when it differs from its tuple start, to be used when the outbound
+     * server rejects the tuple start because its processed low position is already past it. That is the case
+     * on the first start after upgrading from a version that published the full LCR position as the watermark.
+     */
+    private byte[] getFallbackPosition(OracleOffsetContext offsetContext) {
+        final LcrPosition stored = LcrPosition.valueOf(offsetContext.getLcrPosition());
+        if (stored == null || stored.equals(stored.getTupleStartPosition())) {
+            return null;
+        }
+        return stored.getRawPosition();
+    }
+
+    private OracleConnection connectAndAttachWithRetries(ChangeEventSourceContext context, byte[] startPosition, byte[] fallbackPosition)
+            throws Exception {
         OracleConnection connection = null;
         final DelayStrategy retryStrategy = DelayStrategy.exponential(Duration.ofSeconds(1), Duration.ofMinutes(1));
         for (int attempt = 1; attempt <= DEFAULT_MAX_ATTACH_RETRIES; attempt++) {
@@ -267,8 +282,7 @@ public class XstreamStreamingChangeEventSource implements StreamingChangeEventSo
                 connection = connectionFactory.streamingConnectionFactory().newConnection();
                 connection.setAutoCommit(true);
 
-                out = XStreamOut.attach((oracle.jdbc.OracleConnection) connection.connection(), xstreamOutboundServerName,
-                        startPosition, 1, 1, XStreamOut.DEFAULT_MODE);
+                out = attach(connection, startPosition, fallbackPosition);
 
                 xsOut = out;
                 return connection;
@@ -295,6 +309,21 @@ public class XstreamStreamingChangeEventSource implements StreamingChangeEventSo
             }
         }
         throw new DebeziumException("Failed to attach to the Oracle XStream outbound server");
+    }
+
+    private XStreamOut attach(OracleConnection connection, byte[] startPosition, byte[] fallbackPosition) throws SQLException, StreamsException {
+        final oracle.jdbc.OracleConnection oracleConnection = (oracle.jdbc.OracleConnection) connection.connection();
+        try {
+            return XStreamOut.attach(oracleConnection, xstreamOutboundServerName, startPosition, 1, 1, XStreamOut.DEFAULT_MODE);
+        }
+        catch (StreamsException e) {
+            if (e.getErrorCode() != ERR_INVALID_LAST_POSITION || fallbackPosition == null) {
+                throw e;
+            }
+            LOGGER.info("Outbound server {} rejected start position {} as below its processed low position, attaching at the stored position {} instead",
+                    xstreamOutboundServerName, new LcrPosition(startPosition), new LcrPosition(fallbackPosition));
+            return XStreamOut.attach(oracleConnection, xstreamOutboundServerName, fallbackPosition, 1, 1, XStreamOut.DEFAULT_MODE);
+        }
     }
 
     private boolean isAttachExceptionRetriable(StreamsException e) {
