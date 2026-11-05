@@ -194,6 +194,61 @@ public class LogMinerQueryBuilderTest {
         }
     }
 
+    @Test
+    @FixFor("debezium/dbz#2991")
+    public void testInModeSchemaAndTableInClausesAreCorrelatedSubqueries() {
+        final OracleConnectorConfig config = getBuilderForMode(LogMiningQueryFilterMode.IN)
+                .with(SCHEMA_INCLUDE_LIST, "debezium")
+                .with(TABLE_INCLUDE_LIST, "debezium\\.t1,DEBEZIUM\\.T2")
+                .build();
+
+        assertThat(new BufferedLogMinerQueryBuilder(config).getQuery())
+                .contains("(SEG_OWNER IS NULL OR EXISTS (SELECT 1 FROM DUAL WHERE UPPER(SEG_OWNER) IN ('UNKNOWN','DEBEZIUM')))")
+                .contains("(TABLE_NAME IS NULL OR EXISTS (SELECT 1 FROM DUAL WHERE UPPER(SEG_OWNER || '.' || TABLE_NAME) IN ('DEBEZIUM.T1','DEBEZIUM.T2')))");
+        assertQuery(config);
+    }
+
+    @Test
+    @FixFor("debezium/dbz#2991")
+    public void testInModeExcludeListsAreCorrelatedSubqueries() {
+        final OracleConnectorConfig config = getBuilderForMode(LogMiningQueryFilterMode.IN)
+                .with(SCHEMA_EXCLUDE_LIST, "other")
+                .with(TABLE_EXCLUDE_LIST, "other\\.t1")
+                .build();
+
+        assertThat(new BufferedLogMinerQueryBuilder(config).getQuery())
+                .contains("EXISTS (SELECT 1 FROM DUAL WHERE UPPER(SEG_OWNER) NOT IN (")
+                .contains(
+                        "(TABLE_NAME IS NULL OR TABLE_NAME NOT LIKE 'MLOG$%' OR EXISTS (SELECT 1 FROM DUAL WHERE UPPER(SEG_OWNER || '.' || TABLE_NAME) NOT IN ('OTHER.T1')))");
+        assertQuery(config);
+    }
+
+    @Test
+    @FixFor("debezium/dbz#2991")
+    public void testInModeSignalTableStaysOutsideCorrelatedSubquery() {
+        final OracleConnectorConfig config = getBuilderForMode(LogMiningQueryFilterMode.IN)
+                .with(TABLE_INCLUDE_LIST, "DEBEZIUM\\.T1")
+                .with(SIGNAL_DATA_COLLECTION, TestHelper.getDatabaseName() + ".DEBEZIUM1.SIGNAL_TABLE")
+                .build();
+
+        assertThat(new BufferedLogMinerQueryBuilder(config).getQuery())
+                .contains(
+                        "UPPER(SEG_OWNER || '.' || TABLE_NAME) = 'DEBEZIUM1.SIGNAL_TABLE' OR EXISTS (SELECT 1 FROM DUAL WHERE UPPER(SEG_OWNER || '.' || TABLE_NAME) IN ('DEBEZIUM.T1'))");
+        assertQuery(config);
+    }
+
+    @Test
+    @FixFor("debezium/dbz#2991")
+    public void testRegexModeDoesNotUseCorrelatedSubqueries() {
+        final OracleConnectorConfig config = getBuilderForMode(LogMiningQueryFilterMode.REGEX)
+                .with(SCHEMA_INCLUDE_LIST, "DEBEZIUM")
+                .with(TABLE_INCLUDE_LIST, "DEBEZIUM\\.T1")
+                .build();
+
+        assertThat(new BufferedLogMinerQueryBuilder(config).getQuery()).doesNotContain("EXISTS (");
+        assertQuery(config);
+    }
+
     private ConfigBuilder getBuilderForStrategy(LogMiningQueryFilterMode mode, LogMiningStrategy strategy) {
         return getBuilderForMode(mode)
                 .with(OracleConnectorConfig.LOG_MINING_STRATEGY, strategy.getValue())
@@ -416,7 +471,7 @@ public class LogMinerQueryBuilderTest {
                 // Exclusions are defined (either built-in or both built-in and provided
                 inClause = getIn(fieldName, getSchemaExcludes(excludeList, false), true, true);
             }
-            return " AND (" + fieldName + " IS NULL OR " + inClause + ")";
+            return " AND (" + fieldName + " IS NULL OR " + getExists(inClause) + ")";
         }
         else {
             // Regular Expressions
@@ -464,7 +519,7 @@ public class LogMinerQueryBuilderTest {
                 result += "TABLE_NAME NOT LIKE 'MLOG$%' OR ";
             }
 
-            return result + signalDataClause + inClause + ")";
+            return result + signalDataClause + getExists(inClause) + ")";
         }
         else {
             // Regular Expressions
@@ -526,6 +581,10 @@ public class LogMinerQueryBuilderTest {
         return "";
     }
 
+    private String getExists(String predicate) {
+        return "EXISTS (SELECT 1 FROM DUAL WHERE " + predicate + ")";
+    }
+
     private String getIn(String columnName, Collection<String> values, boolean negated, boolean caseInsensitive) {
         final StringBuilder predicate = new StringBuilder();
 
@@ -552,7 +611,7 @@ public class LogMinerQueryBuilderTest {
 
             for (Iterator<?> iterator = subList.iterator(); iterator.hasNext();) {
                 final Object value = iterator.next();
-                predicate.append("'").append(value).append("'");
+                predicate.append("'").append(caseInsensitive ? value.toString().toUpperCase() : value).append("'");
                 if (iterator.hasNext()) {
                     predicate.append(",");
                 }

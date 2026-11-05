@@ -237,13 +237,13 @@ public abstract class AbstractLogMinerQueryBuilder implements LogMinerQueryBuild
                 }
             });
 
-            predicate.append(IncludeExcludeInClause.builder()
+            predicate.append(correlatedSubquery(IncludeExcludeInClause.builder()
                     .withField(fieldName)
                     .withFilterMode(queryFilterMode)
                     .withIncludeValues(includeTableList)
                     .withExcludeValues(excludeTableList)
                     .caseInsensitive()
-                    .build());
+                    .build()));
             predicate.append(")");
             return predicate.toString();
         }
@@ -316,7 +316,7 @@ public abstract class AbstractLogMinerQueryBuilder implements LogMinerQueryBuild
             final StringBuilder predicate = new StringBuilder();
             predicate.append("(").append(fieldName).append(" IS NULL OR ");
 
-            predicate.append(IncludeExcludeInClause.builder()
+            predicate.append(correlatedSubquery(IncludeExcludeInClause.builder()
                     .withField(fieldName)
                     .withFilterMode(queryFilterMode)
                     .withIncludeValues(includeSchemasList)
@@ -324,7 +324,7 @@ public abstract class AbstractLogMinerQueryBuilder implements LogMinerQueryBuild
                     .withExcludeValues(excludeSchemasList)
                     .withDefaultExcludeValues(getBuiltInExcludedSchemas())
                     .caseInsensitive()
-                    .build());
+                    .build()));
             predicate.append(")");
             return predicate.toString();
         }
@@ -365,6 +365,21 @@ public abstract class AbstractLogMinerQueryBuilder implements LogMinerQueryBuild
         else {
             throw new DebeziumException("An unsupported LogMiningQueryFilterMode detected: " + queryFilterMode);
         }
+    }
+
+    /**
+     * Wraps a predicate in a correlated {@code EXISTS (SELECT 1 FROM DUAL WHERE ...)} sub-query.
+     *
+     * V$LOGMNR_CONTENTS is a fixed table, so a predicate on its columns is evaluated once per row. Moving the
+     * predicate into a sub-query correlated on the referenced columns lets Oracle apply scalar sub-query caching,
+     * so that the case-insensitive in-clause comparison is evaluated once per distinct schema and table name
+     * rather than once per mined row, without changing which rows are matched.
+     *
+     * @param predicate the predicate to wrap, should not be {@code null} or empty
+     * @return the wrapped predicate
+     */
+    private static String correlatedSubquery(String predicate) {
+        return "EXISTS (SELECT 1 FROM DUAL WHERE " + predicate + ")";
     }
 
     private static Optional<TableId> getSignalDataCollectionId(OracleConnectorConfig connectorConfig) {
