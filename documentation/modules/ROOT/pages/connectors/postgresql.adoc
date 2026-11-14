@@ -4318,7 +4318,7 @@ Secondary properties::
 For each table that you list in the main property, you must define a corresponding `snapshot.select.statement.overrides._<schemaName>_._<tableName>_` property that specifies the custom `SELECT` statement to run during the snapshot.
 The `SELECT` statement determines which rows from the table to include in the snapshot.
 +
-For example, to specify a SELECT statement for the `customer.orders` table, add the following property:
+For example, to specify a SELECT statement for the `customers.orders` table, add the following property:
 +
 `snapshot.select.statement.overrides.customers.orders`
 +
@@ -4331,8 +4331,8 @@ Example configuration::
 The following example shows how to configure the `snapshot.select.statement.overrides` property to perform a snapshot of the `customers.orders` table that includes only records that are not soft-deleted; that is, the value of the soft-delete field, `delete_flag`, is set to `0`.
 ====
 ----
-"snapshot.select.statement.overrides": "customer.orders",
-"snapshot.select.statement.overrides.customer.orders": "SELECT * FROM customers.orders WHERE delete_flag = 0 ORDER BY id DESC"
+"snapshot.select.statement.overrides": "customers.orders",
+"snapshot.select.statement.overrides.customers.orders": "SELECT * FROM customers.orders WHERE delete_flag = 0 ORDER BY id DESC"
 ----
 ====
 
